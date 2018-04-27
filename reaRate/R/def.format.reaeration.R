@@ -11,7 +11,7 @@
 #' @importFrom streamQ def.format.Q
 #' @importFrom streamQ def.calc.Q.inj
 #' @importFrom streamQ def.calc.Q.slug
-#' @importFrom neonDataStackR stackByTable
+#' @importFrom neonUtilities stackByTable
 #' @importFrom utils read.csv
 
 #' @param dataDir User identifies the directory that contains the zipped data
@@ -51,7 +51,7 @@ def.format.reaeration <- function(
   
   #Stack field and external lab data
   if(!dir.exists(substr(dataDir, 1, (nchar(dataDir)-4)))){
-    stackByTable(dataDir)
+    stackByTable(dpID="DP1.20190.001",filepath=dataDir)
   }
   
   #Read in stacked data

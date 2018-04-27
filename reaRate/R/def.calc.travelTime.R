@@ -7,6 +7,8 @@
 #' @description This function determines the timestamp of the peak tracer conductance for use 
 #' calculating travel time between an upstream and downstream sensor set.
 
+#' @importFrom neonUtilities stackByTable
+
 #' @param dataDir User input of the directory holding the logger files [string]
 #' @param currEventID User input of the eventID of the tracer experiment [string]
 #' @param injectionType User input of the injection type either "constant" or "slug" [string]
@@ -42,7 +44,7 @@ def.calc.travelTime <- function(
   
   #Stack field and external lab data if needed
   if(!dir.exists(substr(dataDir, 1, (nchar(dataDir)-4)))){
-    stackByTable(dataDir)
+    neonUtilities::stackByTable(dpID="DP1.20190.001",filepath=dataDir)
   }
   
   #Read in stacked logger data

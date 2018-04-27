@@ -5,7 +5,7 @@ library(roxygen2)
 setwd("C:/Users/kcawley/Documents/GitHub/biogeochemistryIPT/reaeration/Science Only/rCodeForRelease")
 #setwd("C:/Users/Kaelin/Documents/GitHub/biogeochemistryIPT/reaeration/Science Only/rCodeForRelease")
 #create("reaRate")
-install_github("NEONScience/NEON-utilities/neonDataStackR", force = T)
+install_github("NEONScience/NEON-utilities/neonUtilities", force = T)
 install("reaRate")
 library(reaRate)
 
