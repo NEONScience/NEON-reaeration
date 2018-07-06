@@ -4,10 +4,16 @@
 \alias{def.format.reaeration}
 \title{Formats reaeration data for rate calculations}
 \usage{
-def.format.reaeration(dataDir = paste0(getwd(), "/NEON_reaeration.zip"))
+def.format.reaeration(dataDir = paste0(getwd(), "/NEON_reaeration.zip"),
+  site = "all", fieldQ = FALSE)
 }
 \arguments{
-\item{dataDir}{User identifies the directory that contains the zipped data}
+\item{dataDir}{User identifies the directory that contains the zipped data or sets to 
+"API" to pull data from the NEON API [string]}
+
+\item{site}{User identifies the site(s), defaults to "all" [string]}
+
+\item{fieldQ}{specifies whether or no field discharge data should be included [boolean]}
 }
 \value{
 This function returns one data frame formatted for use with def.calc.reaeration.R
@@ -27,8 +33,8 @@ just place them all in the same directory.
 #where the data.zip file is in the downloads folder and has a specified name,
 #reaFormatted <- def.format.reaeration(dataDir = path.expand("~/Downloads/non-standard-name.zip"))
 #Using the example data in this package
-dataDirectory <- paste(path.package("reaRate"),"inst\\\\extdata", sep = "\\\\")
-reaFormatted <- def.format.reaeration(dataDir = dataDirectory)
+#dataDirectory <- paste(path.package("reaRate"),"inst\\\\extdata", sep = "\\\\")
+#reaFormatted <- def.format.reaeration(dataDir = dataDirectory)
 }
 \references{
 License: GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007

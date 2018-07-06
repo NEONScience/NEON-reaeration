@@ -11,9 +11,9 @@ Usage
 
 The functions in this package have the following purpose: (1) to format downloaded data, (2) to calculate travel time, (3) to calculate reaeration rates, and (4) to normalize to Schmidt 600 number. See help files for individual functions for details. The general flow of using this package is:
 
-1.  download data from the NEON data portal, into location "myDataPath", which is the path of the zip file and should end in .zip
+1.  download data from the NEON data portal, into location "myDataPath", which is the path of the zip file and should end in .zip or set dataDir = "API" and identify a specific site or set site = "all" to pull in data for all NEON sites from the API.
 2.  reaFormatted &lt;- def.format.reaeration(dataDir = "myDataPath"), returns a data frame called reaFormatted
-3.  reaRatesCalc &lt;- def.calc.reaeration(inputFile = reaFormatted, dataDir = "myDataPath", plot = T), returns a data frame called reaRatesCalc with stream velocity, SF6 reaeration rate, mean stream depth, O2 reaeration rate, mean discharge, mean water temperature, and k600 appended as columns in the data frame.
+3.  reaRatesCalc &lt;- def.calc.reaeration(inputFile = reaFormatted, dataDir = "myDataPath", plot = T), returns a list of two dataframes, the input dataframe of data for up to 4 stations per site per date and an output dataframe appended with loss rate, travel time, SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600 for a given site and date.
 
 <!-- ****** Acknowledgements ****** -->
 Credits & Acknowledgements

@@ -4,29 +4,41 @@
 \alias{def.calc.reaeration}
 \title{Reaeration rate and Schmidt number calculations}
 \usage{
-def.calc.reaeration(inputFile, dataDir, namedLocation = "namedLocation",
-  injectionType = "injectionType", eventID = "eventID",
+def.calc.reaeration(inputFile, dataDir, loggerFile,
+  namedLocation = "namedLocation", injectionType = "injectionType",
+  eventID = "eventID",
   stationToInjectionDistance = "stationToInjectionDistance",
   plateauGasConc = "plateauGasConc", corrPlatSaltConc = "corrPlatSaltConc",
-  hoboSampleID = "hoboSampleID", discharge = "discharge",
-  waterTemp = "waterTemp", wettedWidth = "wettedWidth", plot = F)
+  hoboSampleID = "hoboSampleID", discharge = "fieldDischarge",
+  waterTemp = "waterTemp", wettedWidth = "wettedWidth", plot = FALSE,
+  savePlotPath = NULL)
 }
 \arguments{
-\item{inputFile}{Name of the data fram containing the information needed to calculate the dissolved gas concentrations. If the headers are named: "injectionType", "eventID", "stationToInjectionDistance", "plateauGasConc", "corrPlatSaltConc", "hoboSampleID", "wettedWidth", respectively, no other inputs are required. Otherwise, the names of the columns need to be input for the function to work.}
+\item{inputFile}{Name of the data fram containing the information needed to calculate the 
+reaeration parameters. If the headers are named: "injectionType", "eventID", 
+"stationToInjectionDistance", "plateauGasConc", "corrPlatSaltConc", "hoboSampleID", 
+"wettedWidth", respectively, no other inputs are required. Otherwise, the names of the 
+columns need to be input for the function to work. [string]}
 
-\item{dataDir}{User identifies the directory that contains the unzipped data}
+\item{dataDir}{User identifies the directory that contains the unzipped data [string]}
+
+\item{loggerFile}{User identified filename of logger data [string]}
 
 \item{namedLocation}{A string identifier for the station where data was collected [string]}
 
 \item{injectionType}{Either constant rate or slug [string]}
 
-\item{eventID}{A string identifier to link records collected as part of the same experiment, SITE.YYYYMMDD for NEON [string]}
+\item{eventID}{A string identifier to link records collected as part of the same experiment, 
+SITE.YYYYMMDD for NEON [string]}
 
-\item{stationToInjectionDistance}{Dataframe column name for distance from station to injection [string]}
+\item{stationToInjectionDistance}{Dataframe column name for distance from station to 
+injection [string]}
 
-\item{plateauGasConc}{Dataframe column name for natural log of gas concentration normalized to background corrected salt concentration [string]}
+\item{plateauGasConc}{Dataframe column name for natural log of gas concentration normalized to 
+background corrected salt concentration [string]}
 
-\item{corrPlatSaltConc}{Dataframe column name for natural log of gas concentration normalized to background corrected salt concentration [string]}
+\item{corrPlatSaltConc}{Dataframe column name for natural log of gas concentration normalized to 
+background corrected salt concentration [string]}
 
 \item{hoboSampleID}{Dataframe column name for ID to link to conductivity timeseries data [string]}
 
@@ -36,28 +48,34 @@ def.calc.reaeration(inputFile, dataDir, namedLocation = "namedLocation",
 
 \item{wettedWidth}{Dataframe column name for mean wetted width for the stream reach [string]}
 
-\item{plot}{User input to plot the SF6/corrected salt concentration versus distance downstream, defaults to FALSE [boolean]}
+\item{plot}{User input to plot the SF6/corrected salt concentration versus distance downstream, 
+defaults to FALSE [boolean]}
+
+\item{savePlotPath}{If a user specifies a path the plots will be saved to this location [string]}
 }
 \value{
-This function returns a dataframe appended with loss rate, travel time, 
-SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600
+This function returns a list of two dataframes, the input dataframe of data for up to 
+4 stations per site per date and an output dataframe appended with loss rate, travel time, 
+SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600 for a given site and date
 }
 \description{
-This function calculates loss rate, travel time, SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600.
+This function calculates loss rate, travel time, SF6 reaeration rate, O2 
+gas transfer velocity, and Schmidt number 600.
 }
 \examples{
 #where the data frame "reaFormatted" is already read in
-reaRatesCalc <- def.calc.reaeration(inputFile = reaFormatted, 
-dataDir = paste(path.package("reaRate"),"inst\\\\extdata", sep = "\\\\"), plot = TRUE)
+#reaRatesCalc <- def.calc.reaeration(inputFile = reaFormatted, 
+#dataDir = paste(path.package("reaRate"),"inst\\\\extdata", sep = "\\\\"), plot = TRUE)
 #where the data is read in from a file in the working directory (also works with a full path)
-reaRatesCalc <- def.calc.reaeration(inputFile = 
-system.file("extdata", "reaTestData.csv", package = "reaRate"))
+#reaRatesCalc <- def.calc.reaeration(inputFile = 
+#system.file("extdata", "reaTestData.csv", package = "reaRate"))
 }
 \references{
 License: GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007
 }
 \seealso{
-def.calc.travelTime for calculating travel times and def.format.reaeration for formatting reaeration data
+def.calc.peakTime for calculating travel times and def.format.reaeration for 
+formatting reaeration data
 }
 \author{
 Kaelin M. Cawley \email{kcawley@battelleecology.org} \cr
