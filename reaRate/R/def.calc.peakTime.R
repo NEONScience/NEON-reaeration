@@ -101,6 +101,9 @@ def.calc.peakTime <- function(
   }else if(injectionType == "NaCl"){
     ##### Constants #####
     cSpan <- 1/10 #Range of data to smooth for a point, higher = smoother
+    if(length(loggerData)<40){
+      cSpan <- 0.5
+    }
     cDegree <- 2 #1 linear fit, 2 for 2nd order polynomial
     cEvaluation <- length(loggerData) #Total number of point after loess smoothing
     #cCondTH <- 0.05 #Threshold to count as ~0 for derivative
@@ -112,6 +115,10 @@ def.calc.peakTime <- function(
     #smooth the tracer data
     #Warnings are created sometimes when it runs against the edge of data, so supressing warnings from the smoothing
     suppressWarnings(cond.loess <- loess.smooth(reaMeasCount, loggerData, span = cSpan, degree = cDegree, evaluation = cEvaluation, family = "symmetric"))
+    if(!exists("cond.loess")){
+      print("Error finding peak time, smoothing could not be applied")
+      return(NA)
+    }
     #plot(reaMeasCount, loggerData, xlab = "Measurement Number", ylab = "Specific Conductance")
     #lines(cond.loess$x,cond.loess$y, col = "green", lwd = 2)
     

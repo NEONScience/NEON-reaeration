@@ -171,9 +171,9 @@ def.calc.reaeration <- function(
     stringsAsFactors = F)
   
   #Check for correct date format
-  if(all(grepl("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",loggerData$dateTimeLogger))){
+  if(all(grepl("20[1-9][0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",loggerData$dateTimeLogger))){
     dateFormat <- "%Y-%m-%dT%H:%M:%SZ"
-  }else if(all(grepl("[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.000+0000",loggerData$dateTimeLogger))){
+  }else if(all(grepl("20[1-9][0-9]-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.000\\+0000",loggerData$dateTimeLogger))){
     dateFormat <- "%Y-%m-%dT%H:%M:%S.000+0000"
   }else{
     stop("Inconsistent or unidentified date formats in conductivity logger data.")
@@ -184,6 +184,10 @@ def.calc.reaeration <- function(
     currEventID <- outputDF$eventID[i]
     print(paste0(i, " - ", currEventID))
     injectionType <- unique(inputFile[inputFile[[eventIDIdx]] == currEventID & !is.na(inputFile[[injTypeIdx]]), injTypeIdx])
+    if(length(injectionType)<1){
+      cat("Warning - Injection type unknown for",currEventID,"\n")
+      next
+    }
     #Calculations for the "model" slug injections only TBD
     #For the moment just skip those
     if(injectionType=="model"){
