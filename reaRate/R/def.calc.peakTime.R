@@ -64,7 +64,7 @@ def.calc.peakTime <- function(
   Sys.sleep(1)
   invisible(dev.off())
   
-  if(badPlotBox==1){
+  if(length(badPlotBox) && badPlotBox==1){
     #If things look good, move on
     invisible(dev.new(noRStudioGD = TRUE))
     plot(seq(along=loggerData), loggerData, xlab = "Measurement Number", ylab = "Specific Conductance")
