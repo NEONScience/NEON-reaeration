@@ -171,9 +171,9 @@ def.calc.reaeration <- function(
     stringsAsFactors = F)
   
   #Check for correct date format
-  if(all(grepl("20[1-9][0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",loggerData$dateTimeLogger))){
+  if(all(grepl("20[0-9]{2}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",loggerData$dateTimeLogger))){
     dateFormat <- "%Y-%m-%dT%H:%M:%SZ"
-  }else if(all(grepl("20[1-9][0-9]-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.000\\+0000",loggerData$dateTimeLogger))){
+  }else if(all(grepl("20[0-9]-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.000\\+0000",loggerData$dateTimeLogger))){
     dateFormat <- "%Y-%m-%dT%H:%M:%S.000+0000"
   }else{
     stop("Inconsistent or unidentified date formats in conductivity logger data.")
