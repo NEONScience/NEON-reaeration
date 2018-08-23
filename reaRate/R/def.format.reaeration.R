@@ -196,6 +196,9 @@ def.format.reaeration <- function(
   
   outputDF$eventID <- paste0(outputDF$siteID, ".", substr(outputDF$startDate,1,4), substr(outputDF$startDate,6,7), substr(outputDF$startDate,9,10))
   
+  #Remove data for model type injections
+  outputDF <- outputDF[outputDF$injectionType!="model"&!is.na(outputDF$injectionType),]
+  
   QFile <- def.format.Q(dataDir = dataDir, site = site)
   QFile <- def.calc.Q.inj(QFile)
   #Move the slug calculations for Q to peakTime so that users only have to click on the plots once

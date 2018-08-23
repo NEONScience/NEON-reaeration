@@ -180,6 +180,7 @@ def.calc.reaeration <- function(
   }
   
   for(i in seq(along = outputDF$eventID)){
+  #for(i in 21:22){
     #Uncomment this if you'd like to see a list of all the eventIDs for troubleshooting or debugging
     currEventID <- outputDF$eventID[i]
     print(paste0(i, " - ", currEventID))
@@ -213,11 +214,21 @@ def.calc.reaeration <- function(
       
       currBack <- backSalt[j]
       currPlatSalt <- as.numeric(strsplit(platSalt[j],"\\|")[[1]])
-      corrPlatSalt <- currPlatSalt-currBack
       currPlatGas <- as.numeric(strsplit(platGas[j],"\\|")[[1]])
-      normPlatGas <- currPlatGas/corrPlatSalt
       
-      if(length(normPlatGas)<1||length(corrPlatSalt)<1||length(currBack)<1){
+      #Background correct plateau salt concentrations
+      corrPlatSalt <- NA
+      if(length(currPlatSalt)>0 && length(currBack)>0){
+        corrPlatSalt <- currPlatSalt-currBack
+      }
+      
+      #Normalize plateaue gas concentration to corrected plateau salt concentration
+      normPlatGas <- NA
+      if(length(currPlatGas)>0 && length(corrPlatSalt)>0){
+        normPlatGas <- currPlatGas/corrPlatSalt
+      }
+      
+      if(length(currPlatSalt)<1 || length(currBack)<1 || length(currPlatGas)<1 || is.na(currPlatGas) || is.na(currPlatGas)){
         print(paste0("Tracer data for station ",j,", eventID ",currEventID," not available."))
         next
       }

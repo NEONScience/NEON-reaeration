@@ -15,7 +15,7 @@ dataDir <- "C:/Users/kcawley/Downloads/NEON_reaeration.zip"
 
 #For use with the API functionality
 dataDir <- "API"
-site <- "KING"
+site <- "WALK"
 #site <- "all"
 
 reaFormatted <- def.format.reaeration(dataDir = dataDir, site = site, fieldQ = TRUE)
