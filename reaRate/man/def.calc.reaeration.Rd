@@ -8,10 +8,10 @@ def.calc.reaeration(inputFile, dataDir, loggerFile,
   namedLocation = "namedLocation", injectionType = "injectionType",
   eventID = "eventID",
   stationToInjectionDistance = "stationToInjectionDistance",
-  plateauGasConc = "plateauGasConc", corrPlatSaltConc = "corrPlatSaltConc",
-  hoboSampleID = "hoboSampleID", discharge = "fieldDischarge",
-  waterTemp = "waterTemp", wettedWidth = "wettedWidth", plot = FALSE,
-  savePlotPath = NULL)
+  plateauGasConc = "plateauGasConc",
+  corrPlatSaltConc = "corrPlatSaltConc", hoboSampleID = "hoboSampleID",
+  discharge = "fieldDischarge", waterTemp = "waterTemp",
+  wettedWidth = "wettedWidth", plot = FALSE, savePlotPath = NULL)
 }
 \arguments{
 \item{inputFile}{Name of the data fram containing the information needed to calculate the 

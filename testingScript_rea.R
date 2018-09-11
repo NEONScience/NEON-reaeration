@@ -15,7 +15,10 @@ dataDir <- "C:/Users/kcawley/Downloads/NEON_reaeration.zip"
 
 #For use with the API functionality
 dataDir <- "API"
-site <- "WALK"
+site <- "POSE"
+site <- "MCDI"
+site <- "LEWI"
+#site <- "WALK"
 #site <- "all"
 
 reaFormatted <- def.format.reaeration(dataDir = dataDir, site = site, fieldQ = TRUE)
@@ -31,6 +34,10 @@ reaRatesCalc <- def.calc.reaeration(inputFile = reaFormatted,
 
 outputDF <- reaRatesCalc$outputDF
 inputFile <- reaRatesCalc$inputFile
+
+plot(outputDF$meanQ,outputDF$travelTime, col = "blue", type = "p", pch = 16)
+plot(outputDF$meanQ,outputDF$lossRateSF6, col = "blue", type = "p", pch = 16)
+plot(outputDF$meanQ,outputDF$k600, col = "blue", type = "p", pch = 16)
 
 setwd("C:/Users/kcawley/Documents/GitHub/NEON-reaeration/reaRate")
 #setwd("C:/Users/Kaelin/Documents/GitHub/biogeochemistryIPT/reaeration/Science Only/rCodeForRelease/reaRate")
