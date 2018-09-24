@@ -6,7 +6,7 @@ Description: Contains functions to format data and calculate tracer gas loss
     rate, stream water travel time, oxygen reaeration rate coefficient, and Schmidt
     600 number.
 Depends:
-    R (>= 3.3.2),neonUtilities
+    R (>= 3.3),neonUtilities
 Imports:
     streamQ,graphics,pracma,outliers,grDevices,stats,utils
 Remotes: NEONScience/NEON-utilities/neonUtilities,

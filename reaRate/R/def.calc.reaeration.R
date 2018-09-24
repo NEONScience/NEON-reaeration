@@ -202,8 +202,8 @@ def.calc.reaeration <- function(
     
     #Background correct salt samples, normalize gas concentration, and natural log transform the plateau gas concentrations
     backSalt <- inputFile$backgroundSaltConc[inputFile$eventID == currEventID]
-    platSalt <- inputFile$plateauSaltConc[inputFile$eventID == currEventID]
-    platGas <- inputFile$plateauGasConc[inputFile$eventID == currEventID]
+    platSalt <- as.character(inputFile$plateauSaltConc[inputFile$eventID == currEventID])
+    platGas <- as.character(inputFile$plateauGasConc[inputFile$eventID == currEventID])
     statDist <- inputFile$stationToInjectionDistance[inputFile$eventID == currEventID]
     
     x <- NA
@@ -224,7 +224,7 @@ def.calc.reaeration <- function(
       
       #Normalize plateaue gas concentration to corrected plateau salt concentration
       normPlatGas <- NA
-      if(length(currPlatGas)>0 && length(corrPlatSalt)>0){
+      if(length(currPlatGas)>0 && length(corrPlatSalt)>0 && !is.na(currPlatGas) && !is.na(corrPlatSalt) && length(normPlatGas)==length(corrPlatSalt)){
         normPlatGas <- currPlatGas/corrPlatSalt
       }
       
