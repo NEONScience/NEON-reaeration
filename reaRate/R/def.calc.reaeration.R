@@ -224,11 +224,11 @@ def.calc.reaeration <- function(
       
       #Normalize plateaue gas concentration to corrected plateau salt concentration
       normPlatGas <- NA
-      if(length(currPlatGas)>0 && length(corrPlatSalt)>0 && !is.na(currPlatGas) && !is.na(corrPlatSalt) && length(normPlatGas)==length(corrPlatSalt)){
+      if(length(currPlatGas)>0 && length(corrPlatSalt)>0 && any(!is.na(currPlatGas)) && any(!is.na(corrPlatSalt)) && length(currPlatGas)==length(corrPlatSalt)){
         normPlatGas <- currPlatGas/corrPlatSalt
       }
       
-      if(length(currPlatSalt)<1 || length(currBack)<1 || length(currPlatGas)<1 || is.na(currPlatGas) || is.na(currPlatGas)){
+      if(length(currPlatSalt)<1 || length(currBack)<1 || length(currPlatGas)<1 || all(is.na(currPlatGas)) || all(is.na(currPlatGas))){
         print(paste0("Tracer data for station ",j,", eventID ",currEventID," not available."))
         next
       }

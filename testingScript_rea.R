@@ -18,6 +18,7 @@ dataDir <- "API"
 site <- "POSE"
 site <- "MCDI"
 site <- "LEWI"
+site <- "GUIL"
 #site <- "WALK"
 #site <- "all"
 
