@@ -103,30 +103,30 @@ def.format.reaeration <- function(
       paste(filepath,"rea_backgroundFieldCondData.csv", sep = "/"), 
       stringsAsFactors = F)
     
-    rea_backgroundFieldSaltData <- read.csv(
+    try(rea_backgroundFieldSaltData <- read.csv(
       paste(filepath, "rea_backgroundFieldSaltData.csv", sep = "/"), 
-      stringsAsFactors = F)
+      stringsAsFactors = F))
     
     rea_fieldData <- read.csv(
       paste(filepath,"rea_fieldData.csv", sep = "/"), 
       stringsAsFactors = F)
     
-    rea_plateauMeasurementFieldData <- read.csv(
+    try(rea_plateauMeasurementFieldData <- read.csv(
       paste(filepath,"rea_plateauMeasurementFieldData.csv", sep = "/"), 
-      stringsAsFactors = F)
+      stringsAsFactors = F))
     
     # #This isn't used anywhere else
     # rea_plateauSampleFieldData <- read.csv(
     #   paste(filepath,"rea_plateauSampleFieldData.csv", sep = "/"), 
     #   stringsAsFactors = F)
     
-    rea_externalLabDataSalt <- read.csv(
+    try(rea_externalLabDataSalt <- read.csv(
       paste(filepath,"rea_externalLabDataSalt.csv", sep = "/"), 
-      stringsAsFactors = F)
+      stringsAsFactors = F))
     
-    rea_externalLabDataGas <- read.csv(
+    try(rea_externalLabDataGas <- read.csv(
       paste(filepath,"rea_externalLabDataGas.csv", sep = "/"), 
-      stringsAsFactors = F)
+      stringsAsFactors = F))
     
     rea_widthFieldData <- read.csv(
       paste(filepath,"rea_widthFieldData.csv", sep = "/"), 
@@ -154,10 +154,17 @@ def.format.reaeration <- function(
   rea_fieldData$namedLocation <- NULL #So that merge goes smoothly
   
   #Merge the rea_backgroundFieldSaltData and rea_fieldData tables
-  loggerSiteData <- merge(rea_backgroundFieldSaltData, 
-                          rea_fieldData, 
-                          by = c('siteID', 'startDate'), 
-                          all = T)
+  if(exists("rea_backgroundFieldSaltData")){
+    loggerSiteData <- merge(rea_backgroundFieldSaltData, 
+                            rea_fieldData, 
+                            by = c('siteID', 'startDate'), 
+                            all = T)
+  }else{
+    loggerSiteData <- merge(rea_backgroundFieldCondData, 
+                            rea_fieldData, 
+                            by = c('siteID', 'startDate'), 
+                            all = T)
+  }
   
   #Create input file for reaeration calculations
   outputDFNames <- c(

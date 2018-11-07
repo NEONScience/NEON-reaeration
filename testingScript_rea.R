@@ -40,6 +40,11 @@ plot(outputDF$meanQ,outputDF$travelTime, col = "blue", type = "p", pch = 16)
 plot(outputDF$meanQ,outputDF$lossRateSF6, col = "blue", type = "p", pch = 16)
 plot(outputDF$meanQ,outputDF$k600, col = "blue", type = "p", pch = 16)
 
+#Calculate travel time for BLUE for engineering design analysis
+dataDir <- "API"
+site <- "BLUE"
+reaFormatted <- def.format.reaeration(dataDir = dataDir, site = site, fieldQ = TRUE)
+
 setwd("C:/Users/kcawley/Documents/GitHub/NEON-reaeration/reaRate")
 #setwd("C:/Users/Kaelin/Documents/GitHub/biogeochemistryIPT/reaeration/Science Only/rCodeForRelease/reaRate")
 document()
