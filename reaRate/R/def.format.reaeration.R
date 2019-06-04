@@ -308,7 +308,7 @@ def.format.reaeration <- function(
     #Fill in mean wetted width
     wettedWidthVals <- rea_widthFieldData$wettedWidth[
       rea_widthFieldData$namedLocation == siteID &
-        grepl(substr(startDate, 1, 10), rea_widthFieldData$startDate)]
+        grepl(substr(startDate, 1, 10), rea_widthFieldData$collectDate)]
 
     #Remove outliers TBD
     #Calculate the mean wetted width
