@@ -8,7 +8,7 @@ def.format.reaeration(dataDir = paste0(getwd(), "/NEON_reaeration.zip"),
   site = "all", fieldQ = FALSE)
 }
 \arguments{
-\item{dataDir}{User identifies the directory that contains the zipped data or sets to 
+\item{dataDir}{User identifies the directory that contains the zipped data or sets to
 "API" to pull data from the NEON API [string]}
 
 \item{site}{User identifies the site(s), defaults to "all" [string]}
@@ -19,16 +19,16 @@ def.format.reaeration(dataDir = paste0(getwd(), "/NEON_reaeration.zip"),
 This function returns one data frame formatted for use with def.calc.reaeration.R
 }
 \description{
-This function reads in data from the NEON reaeration data product to calculate 
-loss rate, travel time, SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600. 
-Either the basic or expanded package can be downloaded. No need to unzip the downloaded files, 
+This function reads in data from the NEON reaeration data product to calculate
+loss rate, travel time, SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600.
+Either the basic or expanded package can be downloaded. No need to unzip the downloaded files,
 just place them all in the same directory.
 }
 \examples{
-#where the data .zip file is in the working directory and has the default name, 
+#where the data .zip file is in the working directory and has the default name,
 #reaFormatted <- def.format.reaeration()
-#where the data.zip file is in the downloads folder and has default name, 
-#reaFormatted <- 
+#where the data.zip file is in the downloads folder and has default name,
+#reaFormatted <-
 #def.format.reaeration(dataDir = path.expand("~/Downloads/NEON_reaeration.zip"))
 #where the data.zip file is in the downloads folder and has a specified name,
 #reaFormatted <- def.format.reaeration(dataDir = path.expand("~/Downloads/non-standard-name.zip"))
@@ -40,7 +40,7 @@ just place them all in the same directory.
 License: GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007
 }
 \seealso{
-def.calc.tracerTime.R for calculating the stream travel time, 
+def.calc.tracerTime.R for calculating the stream travel time,
 def.plot.reaQcurve.R for plotting reaeration rate versusu stream flow
 }
 \author{
