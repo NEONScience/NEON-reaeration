@@ -4,7 +4,8 @@
 \name{reaFormatted}
 \alias{reaFormatted}
 \title{Formatted reaeration data.}
-\format{A data frame with 24 rows and 16 variables:
+\format{
+A data frame with 24 rows and 16 variables:
 \describe{
   \item{siteID}{site of water sample collection, string}
   \item{namedLocation}{location of water sample collection, string}
@@ -23,7 +24,8 @@
   \item{discharge}{stream discharge, literPerSecond}
   \item{eventID}{identifier for tracer injection experiment, string}
   ...
-}}
+}
+}
 \source{
 \url{http://data.neoninc.org/home/}
 }

@@ -4,44 +4,55 @@
 \alias{def.format.reaeration}
 \title{Formats reaeration data for rate calculations}
 \usage{
-def.format.reaeration(dataDir = paste0(getwd(), "/NEON_reaeration.zip"),
-  site = "all", fieldQ = FALSE)
+def.format.reaeration(
+  rea_backgroundFieldCondData,
+  rea_backgroundFieldSaltData,
+  rea_fieldData,
+  rea_plateauMeasurementFieldData,
+  rea_externalLabDataSalt,
+  rea_externalLabDataGas,
+  rea_widthFieldData,
+  dsc_fieldData,
+  dsc_individualFieldData
+)
 }
 \arguments{
-\item{dataDir}{User identifies the directory that contains the zipped data or sets to
-"API" to pull data from the NEON API [string]}
+\item{rea_backgroundFieldCondData}{This dataframe contains the data for the NEON rea_backgroundFieldCondData table [dataframe]}
 
-\item{site}{User identifies the site(s), defaults to "all" [string]}
+\item{rea_backgroundFieldSaltData}{This dataframe contains the data for the NEON rea_backgroundFieldSaltData table [dataframe]}
 
-\item{fieldQ}{specifies whether or no field discharge data should be included [boolean]}
+\item{rea_fieldData}{This dataframe contains the data for the NEON rea_fieldData table [dataframe]}
+
+\item{rea_plateauMeasurementFieldData}{This dataframe contains the data for the NEON rea_plateauMeasurementFieldData table [dataframe]}
+
+\item{rea_externalLabDataSalt}{This dataframe contains the data for the NEON rea_externalLabDataSalt table [dataframe]}
+
+\item{rea_externalLabDataGas}{This dataframe contains the data for the NEON rea_externalLabDataGas table [dataframe]}
+
+\item{rea_widthFieldData}{This dataframe contains the data for the NEON rea_widthFieldData table [dataframe]}
+
+\item{dsc_fieldData}{This dataframe contains the data for the NEON dsc_fieldData table [dataframe]}
+
+\item{dsc_individualFieldData}{This dataframe contains the data for the NEON dsc_individualFieldData table, optional [dataframe]}
 }
 \value{
 This function returns one data frame formatted for use with def.calc.reaeration.R
 }
 \description{
-This function reads in data from the NEON reaeration data product to calculate
+This function formats data from the NEON reaeration data product to calculate
 loss rate, travel time, SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600.
-Either the basic or expanded package can be downloaded. No need to unzip the downloaded files,
-just place them all in the same directory.
+Either the basic or expanded package can be downloaded. The data files need to be loaded
+into the R environment
 }
 \examples{
-#where the data .zip file is in the working directory and has the default name,
-#reaFormatted <- def.format.reaeration()
-#where the data.zip file is in the downloads folder and has default name,
-#reaFormatted <-
-#def.format.reaeration(dataDir = path.expand("~/Downloads/NEON_reaeration.zip"))
-#where the data.zip file is in the downloads folder and has a specified name,
-#reaFormatted <- def.format.reaeration(dataDir = path.expand("~/Downloads/non-standard-name.zip"))
-#Using the example data in this package
-#dataDirectory <- paste(path.package("reaRate"),"inst\\\\extdata", sep = "\\\\")
-#reaFormatted <- def.format.reaeration(dataDir = dataDirectory)
+#TBD
 }
 \references{
 License: GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007
 }
 \seealso{
 def.calc.tracerTime.R for calculating the stream travel time,
-def.plot.reaQcurve.R for plotting reaeration rate versusu stream flow
+def.plot.reaQcurve.R for plotting reaeration rate versus stream flow
 }
 \author{
 Kaelin M. Cawley \email{kcawley@battelleecology.org} \cr

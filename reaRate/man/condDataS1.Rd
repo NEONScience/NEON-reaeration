@@ -4,11 +4,13 @@
 \name{condDataS1}
 \alias{condDataS1}
 \title{Formatted conductivity time-series data.}
-\format{A list with 2663 rows and 1 variable:
+\format{
+A list with 2663 rows and 1 variable:
 \describe{
   \item{x}{specific conductance of water, specificConductance}
   ...
-}}
+}
+}
 \source{
 \url{http://data.neoninc.org/home/}
 }

@@ -7,7 +7,7 @@
 def.calc.peakTime(loggerData, currEventID, injectionType)
 }
 \arguments{
-\item{loggerData}{User input of the R data object holding the conductivity time series 
+\item{loggerData}{User input of the R data object holding the conductivity time series
 for a site, date, and station [string]}
 
 \item{currEventID}{User input of the eventID of the tracer experiment [string]}
@@ -18,13 +18,13 @@ for a site, date, and station [string]}
 This function returns the peak tracer timestamp [dateTime]
 }
 \description{
-This function determines the timestamp of the peak tracer conductance for use 
+This function determines the timestamp of the peak tracer conductance for use
 calculating travel time between an upstream and downstream sensor set.
 }
 \examples{
 #Using an example file
 #travelTime <- def.calc.travelTime(
-#dataDir = paste(path.package("reaRate"),"inst\\\\extdata", sep = "\\\\"), 
+#dataDir = paste(path.package("reaRate"),"inst\\extdata", sep = "\\"),
 #currEventID = "GUIL.20150129", injectionType = "constant", bPlot = T)
 }
 \references{
