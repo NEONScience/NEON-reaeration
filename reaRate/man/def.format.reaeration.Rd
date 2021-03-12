@@ -12,8 +12,9 @@ def.format.reaeration(
   rea_externalLabDataSalt,
   rea_externalLabDataGas,
   rea_widthFieldData,
-  dsc_fieldData,
-  dsc_individualFieldData
+  dsc_fieldData = NULL,
+  dsc_individualFieldData = NULL,
+  dsc_fieldDataADCP = NULL
 )
 }
 \arguments{
@@ -31,9 +32,11 @@ def.format.reaeration(
 
 \item{rea_widthFieldData}{This dataframe contains the data for the NEON rea_widthFieldData table [dataframe]}
 
-\item{dsc_fieldData}{This dataframe contains the data for the NEON dsc_fieldData table [dataframe]}
+\item{dsc_fieldData}{This dataframe contains the data for the NEON dsc_fieldData table, optional if there is a dsc_fieldDataADCP table [dataframe]}
 
 \item{dsc_individualFieldData}{This dataframe contains the data for the NEON dsc_individualFieldData table, optional [dataframe]}
+
+\item{dsc_fieldDataADCP}{This dataframe contains the data for the NEON dsc_fieldDataADCP table, optional[dataframe]}
 }
 \value{
 This function returns one data frame formatted for use with def.calc.reaeration.R

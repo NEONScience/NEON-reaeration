@@ -20,8 +20,9 @@
 #' @param rea_externalLabDataSalt This dataframe contains the data for the NEON rea_externalLabDataSalt table [dataframe]
 #' @param rea_externalLabDataGas This dataframe contains the data for the NEON rea_externalLabDataGas table [dataframe]
 #' @param rea_widthFieldData This dataframe contains the data for the NEON rea_widthFieldData table [dataframe]
-#' @param dsc_fieldData This dataframe contains the data for the NEON dsc_fieldData table [dataframe]
+#' @param dsc_fieldData This dataframe contains the data for the NEON dsc_fieldData table, optional if there is a dsc_fieldDataADCP table [dataframe]
 #' @param dsc_individualFieldData This dataframe contains the data for the NEON dsc_individualFieldData table, optional [dataframe]
+#' @param dsc_fieldDataADCP This dataframe contains the data for the NEON dsc_fieldDataADCP table, optional[dataframe]
 
 #' @return This function returns one data frame formatted for use with def.calc.reaeration.R
 
@@ -55,11 +56,12 @@ def.format.reaeration <- function(
   rea_externalLabDataSalt,
   rea_externalLabDataGas,
   rea_widthFieldData,
-  dsc_fieldData,
-  dsc_individualFieldData
+  dsc_fieldData = NULL,
+  dsc_individualFieldData = NULL,
+  dsc_fieldDataADCP = NULL
 ) {
 
-  if(!exists("dsc_fieldData")){
+  if(is.null(dsc_fieldData) & is.null(dsc_fieldDataADCP)){
     resp <- readline("Discharge data not loaded or available. Reaeration rates cannot be determined. Do you want to continue to calculate travel time and SF6 loss rate only? y/n: ")
     if(resp %in% c("n","N")) {
       stop("Input data will not be used to make any calculations. Exiting.")
@@ -69,20 +71,23 @@ def.format.reaeration <- function(
     }
   }
 
+  #Hopefully I can comment this out in the future when we get a siteID column, but for now, I'll make one
+  dsc_fieldDataADCP$siteID <- dsc_fieldDataADCP$stationID
+
   # Pull the timezone for the site(s) for making sure the eventIDs match depending on the time of day, need to convert to local time.
   allSites <- unique(rea_fieldData$siteID)
 
   rea_fieldData$localDate <- NA
   dsc_fieldData$localDate <- NA
+  dsc_fieldDataADCP$localDate <- NA
   rea_plateauMeasurementFieldData$localDate <- NA
   for(currSite in allSites){
     currLocInfo <- geoNEON::getLocBySite(site = currSite)
     currTimeZone <- currLocInfo$siteTimezone
 
     rea_fieldData$localDate[rea_fieldData$siteID == currSite] <- format(rea_fieldData$collectDate, tz = currTimeZone, format = "%Y%m%d")
-
     dsc_fieldData$localDate[dsc_fieldData$siteID == currSite] <- format(dsc_fieldData$collectDate, tz = currTimeZone, format = "%Y%m%d")
-
+    dsc_fieldDataADCP$localDate[dsc_fieldDataADCP$siteID == currSite] <- format(dsc_fieldDataADCP$endDate, tz = currTimeZone, format = "%Y%m%d")
     rea_plateauMeasurementFieldData$localDate[rea_plateauMeasurementFieldData$siteID == currSite] <- format(rea_plateauMeasurementFieldData$collectDate, tz = currTimeZone, format = "%Y%m%d")
   }
 
@@ -90,6 +95,7 @@ def.format.reaeration <- function(
   rea_fieldData$eventID <- paste(rea_fieldData$siteID, rea_fieldData$localDate, sep = ".")
   dsc_fieldData$eventID <- paste(dsc_fieldData$siteID, dsc_fieldData$localDate, sep = ".")
   rea_plateauMeasurementFieldData$eventID <- paste(rea_plateauMeasurementFieldData$siteID, rea_plateauMeasurementFieldData$localDate, sep = ".")
+  dsc_fieldDataADCP$eventID <- paste(dsc_fieldDataADCP$siteID, dsc_fieldDataADCP$localDate, sep = ".")
 
   rea_fieldData$namedLocation <- NULL #So that merge goes smoothly
 
@@ -148,12 +154,21 @@ def.format.reaeration <- function(
   dsc_fieldData_calc <- stageQCurve::conv.calc.Q(stageData = dsc_fieldData,
                                                  dischargeData = dsc_individualFieldData)
 
+  #Populate Q from wading surveys
   for(i in unique(outputDF$eventID)){
     #print(i)
-    currQ <- dsc_fieldData_calc$calcQ[dsc_fieldData$eventID == i]
+    currQ <- dsc_fieldData_calc$calcQ[dsc_fieldData_calc$eventID == i]
     try(outputDF$fieldDischarge[outputDF$eventID == i] <- currQ, silent = T)
   }
 
+  #Populate Q from ADCP data, if applicable
+  for(i in unique(outputDF$eventID)){
+    #print(i)
+    currQ <- dsc_fieldDataADCP$totalDischarge[dsc_fieldDataADCP$eventID == i]
+    try(outputDF$fieldDischarge[outputDF$eventID == i] <- currQ, silent = T)
+  }
+
+  #Loop through all the records to populate the other fields
   for(i in seq(along = outputDF$siteID)){
     siteID <- outputDF$siteID[i]
     startDate <- outputDF$collectDate[i]
@@ -173,23 +188,9 @@ def.format.reaeration <- function(
         rea_backgroundFieldCondData$startDate == startDate], silent = T)
 
     #Fill in background concentration data
-    if(length(rea_externalLabDataSalt$saltBelowDetectionQF[
-      rea_externalLabDataSalt$namedLocation == station &
-      rea_externalLabDataSalt$startDate == startDate &
-      grepl(paste0(".B",substr(station,nchar(station),nchar(station)),"."),
-            rea_externalLabDataSalt$saltSampleID)])>0&&(
-              unique(rea_externalLabDataSalt$saltBelowDetectionQF[
-                rea_externalLabDataSalt$namedLocation == station &
-                rea_externalLabDataSalt$startDate == startDate &
-                grepl(paste0(".B",substr(station,nchar(station),nchar(station)),"."),
-                      rea_externalLabDataSalt$saltSampleID)])==1&
-              is.na(unique(rea_externalLabDataSalt$finalConcentration[
-                rea_externalLabDataSalt$namedLocation == station &
-                rea_externalLabDataSalt$startDate == startDate &
-                grepl(paste0(".B",substr(station,nchar(station),nchar(station)),"."),
-                      rea_externalLabDataSalt$saltSampleID)])))){
-      outputDF$backgroundSaltConc[i] <- 0
-    }
+    try(outputDF$backgroundSaltConc[i] <- rea_externalLabDataSalt$finalConcentration[rea_externalLabDataSalt$namedLocation == station &
+                                                                                       rea_externalLabDataSalt$startDate == startDate &
+                                                                                       grepl("[A-Z]{4}\\.B[1-4]",rea_externalLabDataSalt$saltSampleID)], silent = T)
 
     #Fill in plateau concentration data for constant rate injection
     pSaltConc <- rea_externalLabDataSalt$finalConcentration[
