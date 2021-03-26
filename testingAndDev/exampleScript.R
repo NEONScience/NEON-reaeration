@@ -28,7 +28,8 @@
 
 #User Inputs
 #siteID <- "BLDE" #Not an ADCP site (yet!), NaBr injection
-siteID <- "MAYF" #ADCP site for testing
+#siteID <- "MAYF" #ADCP site for testing
+siteID <- "WALK" #When station 2 is used instead of station 1
 
 #String constants
 reaDPID <- "DP1.20190.001"
@@ -52,16 +53,16 @@ dsc_fieldDataIn <- qInputList$dsc_fieldData
 dsc_individualFieldDataIn <- qInputList$dsc_individualFieldData
 dsc_fieldDataADCPIn <- qInputList$dsc_fieldDataADCP
 
-rea_backgroundFieldCondData <- rea_backgroundFieldCondDataIn
-rea_backgroundFieldSaltData <- rea_backgroundFieldSaltDataIn
-rea_fieldData <- rea_fieldDataIn
-rea_plateauMeasurementFieldData <- rea_plateauMeasurementFieldDataIn
-rea_externalLabDataSalt <- rea_externalLabDataSaltIn
-rea_externalLabDataGas <- rea_externalLabDataGasIn
-rea_widthFieldData <- rea_widthFieldDataIn
-dsc_fieldData <- dsc_fieldDataIn
-dsc_individualFieldData <- dsc_individualFieldDataIn
-dsc_fieldDataADCP <- dsc_fieldDataADCPIn
+# rea_backgroundFieldCondData <- rea_backgroundFieldCondDataIn
+# rea_backgroundFieldSaltData <- rea_backgroundFieldSaltDataIn
+# rea_fieldData <- rea_fieldDataIn
+# rea_plateauMeasurementFieldData <- rea_plateauMeasurementFieldDataIn
+# rea_externalLabDataSalt <- rea_externalLabDataSaltIn
+# rea_externalLabDataGas <- rea_externalLabDataGasIn
+# rea_widthFieldData <- rea_widthFieldDataIn
+# dsc_fieldData <- dsc_fieldDataIn
+# dsc_individualFieldData <- dsc_individualFieldDataIn
+# dsc_fieldDataADCP <- dsc_fieldDataADCPIn
 
 reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn,
                                       rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,

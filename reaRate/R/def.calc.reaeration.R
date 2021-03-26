@@ -199,6 +199,8 @@ def.calc.reaeration <- function(
 
     outputDF$siteID[i] <- unique(substr(inputFile[[namLocIdx]][inputFile[[eventIDIdx]] == currEventID], 1, 4))
     S1 <- paste(outputDF$siteID[i], "AOS.reaeration.station.01", sep = ".")
+    S2 <- paste(outputDF$siteID[i], "AOS.reaeration.station.02", sep = ".")
+    S3 <- paste(outputDF$siteID[i], "AOS.reaeration.station.03", sep = ".")
     S4 <- paste(outputDF$siteID[i], "AOS.reaeration.station.04", sep = ".")
 
     #Background correct salt samples, normalize gas concentration, and natural log transform the plateau gas concentrations
@@ -297,13 +299,30 @@ def.calc.reaeration <- function(
     #currEventID <- currEventID
     s1LoggerData <- loggerData[loggerData$hoboSampleID == paste0(substr(currEventID, 1, 4), "_S1_", substr(currEventID, 6, 13)),]
     s1LoggerData <- s1LoggerData[order(s1LoggerData$measurementNumber),]
+    s2LoggerDeployed <- FALSE
 
     s4LoggerData <- loggerData[loggerData$hoboSampleID == paste0(substr(currEventID, 1, 4), "_S4_", substr(currEventID, 6, 13)),]
     s4LoggerData <- s4LoggerData[order(s4LoggerData$measurementNumber),]
 
-    if(length(s1LoggerData[[1]]) <= 0){
-      print(paste0("Conductivity logger data not available for ", currEventID, ", station S1"))
+    if(length(s1LoggerData[[1]]) <= 0 & length(s4LoggerData[[1]]) <= 0){
+      print(paste0("Conductivity logger data not available for ", currEventID, ", stations S1 & S4"))
       next
+    }else if(length(s1LoggerData[[1]]) <= 0){
+      #This is added in for times when the first logger is at station 2 instead of station 1
+      print(paste0("Conductivity logger data not available for ", currEventID, ", station S1, looking for S2 logger data."))
+
+      s2LoggerData <- loggerData[loggerData$hoboSampleID == paste0(substr(currEventID, 1, 4), "_S2_", substr(currEventID, 6, 13)),]
+      s2LoggerData <- s2LoggerData[order(s2LoggerData$measurementNumber),]
+
+      if(length(s2LoggerData[[1]]) <= 0|length(s2LoggerData[[1]]) < 10){
+        print(paste0("Conductivity logger data not available/sufficient for ", currEventID, ", station S2"))
+        next
+      }else{
+        print(paste0("Conductivity logger data found available for ", currEventID, ", station S2"))
+        s1LoggerData <- s2LoggerData
+        s2LoggerDeployed <- TRUE
+      }
+
     }else if(length(s4LoggerData[[1]]) <= 0){
       print(paste0("Conductivity logger data not available for ", currEventID, ", station S4"))
       next
@@ -423,8 +442,13 @@ def.calc.reaeration <- function(
     }
 
     #More calculations to get to the reaeration rate
-    outputDF$btwStaDist[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] -
-      inputFile[inputFile[[namLocIdx]] == S1 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] # meters
+    if(s2LoggerDeployed){
+      outputDF$btwStaDist[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] -
+        inputFile[inputFile[[namLocIdx]] == S2 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] # meters
+    }else{
+      outputDF$btwStaDist[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] -
+        inputFile[inputFile[[namLocIdx]] == S1 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] # meters
+    }
     outputDF$velocity[i] <- outputDF$btwStaDist[i]/as.numeric(outputDF$travelTime[i]) # m/s
     outputDF$reaRateSF6[i] <- outputDF$lossRateSF6[i] * outputDF$velocity[i] * -1 * 86400# m^-1 * m/s * -1 for negative slope and 86400 for number of seconds in a day
 

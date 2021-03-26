@@ -220,8 +220,8 @@ def.format.reaeration <- function(
     outputDF$wettedWidth[i] <- ifelse(!is.nan(mean(wettedWidthVals, na.rm = T)),mean(wettedWidthVals, na.rm = T),NA)
 
     #Populate water temp
-    outputDF$waterTemp[i] <- rea_plateauMeasurementFieldData$waterTemp[rea_plateauMeasurementFieldData$namedLocation == station &
-                                                                         rea_plateauMeasurementFieldData$eventID == outputDF$eventID[i]]
+    suppressWarnings(try(outputDF$waterTemp[i] <- rea_plateauMeasurementFieldData$waterTemp[rea_plateauMeasurementFieldData$namedLocation == station &
+                                                                         rea_plateauMeasurementFieldData$eventID == outputDF$eventID[i]], silent = TRUE))
 
   }
 
