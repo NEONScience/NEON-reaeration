@@ -73,17 +73,16 @@ def.format.reaeration <- function(
 
   #Hopefully I can comment this out in the future when we get a siteID column, but for now, I'll make one
   dsc_fieldDataADCP$siteID <- dsc_fieldDataADCP$stationID
-
-  # Pull the timezone for the site(s) for making sure the eventIDs match depending on the time of day, need to convert to local time.
   allSites <- unique(rea_fieldData$siteID)
 
+  # Pull the timezone for the site(s) for making sure the eventIDs match depending on the time of day, need to convert to local time.
   rea_fieldData$localDate <- NA
   dsc_fieldData$localDate <- NA
   dsc_fieldDataADCP$localDate <- NA
   rea_plateauMeasurementFieldData$localDate <- NA
   for(currSite in allSites){
     currLocInfo <- geoNEON::getLocBySite(site = currSite)
-    currTimeZone <- currLocInfo$siteTimezone
+    currTimeZone <- as.character(currLocInfo$siteTimezone)
 
     rea_fieldData$localDate[rea_fieldData$siteID == currSite] <- format(rea_fieldData$collectDate, tz = currTimeZone, format = "%Y%m%d")
     dsc_fieldData$localDate[dsc_fieldData$siteID == currSite] <- format(dsc_fieldData$collectDate, tz = currTimeZone, format = "%Y%m%d")
@@ -107,12 +106,12 @@ def.format.reaeration <- function(
   if(exists("rea_backgroundFieldSaltData")){
     loggerSiteData <- merge(rea_backgroundFieldSaltData,
                             rea_fieldData,
-                            by = c('siteID', 'collectDate'),
-                            all = T)
+                            by = c('siteID', 'collectDate'), all = T)
   }else{
-    loggerSiteData <- merge(rea_backgroundFieldCondData,
-                            rea_fieldData,
-                            by = c('siteID', 'collectDate'),
+    loggerSiteData <- merge(rea_fieldData,
+                            rea_backgroundFieldCondData,
+                            by.x = c('collectDate', 'uid'),
+                            by.y = c('startDate', 'uid'),
                             all = T)
   }
 
