@@ -50,7 +50,7 @@
 ##############################################################################################
 def.format.reaeration <- function(
   rea_backgroundFieldCondData,
-  rea_backgroundFieldSaltData,
+  rea_backgroundFieldSaltData = NULL,
   rea_fieldData,
   rea_plateauMeasurementFieldData,
   rea_externalLabDataSalt,
@@ -66,9 +66,9 @@ def.format.reaeration <- function(
     if(resp %in% c("n","N")) {
       stop("Input data will not be used to make any calculations. Exiting.")
     }
-    if(!(resp %in% c("y","Y"))) {
-      stop("Input data will not be used to make any calculations. Exiting.")
-    }
+    # if(!(resp %in% c("y","Y"))) {
+    #   stop("Input data will not be used to make any calculations. Exiting.")
+    # }
   }
 
   #Hopefully I can comment this out in the future when we get a siteID column, but for now, I'll make one
@@ -83,7 +83,7 @@ def.format.reaeration <- function(
   rea_plateauMeasurementFieldData$localDate <- NA
   for(currSite in allSites){
     currLocInfo <- geoNEON::getLocBySite(site = currSite)
-    currTimeZone <- currLocInfo$siteTimezone
+    currTimeZone <- as.character(currLocInfo$siteTimezone)
 
     rea_fieldData$localDate[rea_fieldData$siteID == currSite] <- format(rea_fieldData$collectDate, tz = currTimeZone, format = "%Y%m%d")
     dsc_fieldData$localDate[dsc_fieldData$siteID == currSite] <- format(dsc_fieldData$collectDate, tz = currTimeZone, format = "%Y%m%d")
@@ -98,17 +98,17 @@ def.format.reaeration <- function(
   dsc_fieldDataADCP$eventID <- paste(dsc_fieldDataADCP$siteID, dsc_fieldDataADCP$localDate, sep = ".")
 
   rea_fieldData$namedLocation <- NULL #So that merge goes smoothly
+  rea_backgroundFieldCondData$collectDate <- rea_backgroundFieldCondData$startDate #Also to smooth merging
 
   # Populate the saltBelowDetectionQF if it isn't there and remove any values with flags of 1
   rea_externalLabDataSalt$saltBelowDetectionQF[is.na(rea_externalLabDataSalt$saltBelowDetectionQF)] <- 0
   rea_externalLabDataSalt$finalConcentration[rea_externalLabDataSalt$saltBelowDetectionQF == 1] <- NA
 
   #Merge the rea_backgroundFieldSaltData and rea_fieldData tables
-  if(exists("rea_backgroundFieldSaltData")){
+  if(!is.null(rea_backgroundFieldSaltData)){
     loggerSiteData <- merge(rea_backgroundFieldSaltData,
                             rea_fieldData,
-                            by = c('siteID', 'collectDate'),
-                            all = T)
+                            by = c('siteID', 'collectDate'), all = T)
   }else{
     loggerSiteData <- merge(rea_backgroundFieldCondData,
                             rea_fieldData,
@@ -146,9 +146,9 @@ def.format.reaeration <- function(
     }
   }
 
-  #Remove data for model type injections since we can't get k values from those anyway
-  modelInjectionTypes <- c("model","model - slug","model - CRI")
-  outputDF <- outputDF[!outputDF$injectionType%in%modelInjectionTypes & !is.na(outputDF$injectionType),]
+  # #Remove data for model type injections since we can't get k values from those anyway
+  # modelInjectionTypes <- c("model","model - slug","model - CRI")
+  # outputDF <- outputDF[!outputDF$injectionType%in%modelInjectionTypes & !is.na(outputDF$injectionType),]
 
   #Recalculate wading survey discharge using the stageQCurve package and then add to the output dataframe
   dsc_fieldData_calc <- stageQCurve::conv.calc.Q(stageData = dsc_fieldData,
@@ -224,6 +224,9 @@ def.format.reaeration <- function(
                                                                          rea_plateauMeasurementFieldData$eventID == outputDF$eventID[i]], silent = TRUE))
 
   }
+
+  #Remove any rows where injectionType is missing
+  outputDF <- outputDF[!is.na(outputDF$injectionType),]
 
   return(outputDF)
 
