@@ -47,6 +47,8 @@
 #   Kaelin M. Cawley (2020-12-03)
 #     updated to allow users to use data already loaded to R since there are so many options
 #     of how to get it there now
+#   Kaelin M. Cawley
+#     Updated to fix a few user bugs (may have been mac specific) and include model injection types
 ##############################################################################################
 def.format.reaeration <- function(
   rea_backgroundFieldCondData,

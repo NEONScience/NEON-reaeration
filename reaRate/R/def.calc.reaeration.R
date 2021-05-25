@@ -76,6 +76,8 @@
 #     added functionality for saving plots to a specified directory
 #   Kaelin M. Cawley (2020-12-21)
 #     updated to only plot after slugPourTime or dripStartTime
+#   Kaelin M. Cawley (2021-05-25)
+#     updated to calculate supset of metrics for model injection types
 ##############################################################################################
 #This code is for calculating reaeration rates and Schmidt numbers
 def.calc.reaeration <- function(
@@ -182,6 +184,7 @@ def.calc.reaeration <- function(
   for(i in seq(along = outputDF$eventID)){
   #for(i in 21:22){
 
+    modelInjType <- FALSE
     currEventID <- outputDF$eventID[i]
     #Uncomment this if you'd like to see a list of all the eventIDs for troubleshooting or debugging
     #print(paste0(i, " - ", currEventID))
@@ -194,7 +197,7 @@ def.calc.reaeration <- function(
     #For the moment just skip those
     if(injectionType %in% c("model","model - slug","model - CRI")){
       print(paste0("Model injection type, cannot calculate loss rate for ", currEventID))
-      next
+      modelInjType <- TRUE
     }
 
     outputDF$siteID[i] <- unique(substr(inputFile[[namLocIdx]][inputFile[[eventIDIdx]] == currEventID], 1, 4))
@@ -203,96 +206,99 @@ def.calc.reaeration <- function(
     S3 <- paste(outputDF$siteID[i], "AOS.reaeration.station.03", sep = ".")
     S4 <- paste(outputDF$siteID[i], "AOS.reaeration.station.04", sep = ".")
 
-    #Background correct salt samples, normalize gas concentration, and natural log transform the plateau gas concentrations
-    backSalt <- inputFile$backgroundSaltConc[inputFile$eventID == currEventID]
-    platSalt <- as.character(inputFile$plateauSaltConc[inputFile$eventID == currEventID])
-    platGas <- as.character(inputFile$plateauGasConc[inputFile$eventID == currEventID])
-    statDist <- inputFile$stationToInjectionDistance[inputFile$eventID == currEventID]
+    if(!modelInjType){
 
-    #If the background values are below detection, just use 0
-    if(any(is.na(backSalt))){
-      backSalt[is.na(backSalt)] <- 0
-    }
+      #Background correct salt samples, normalize gas concentration, and natural log transform the plateau gas concentrations
+      backSalt <- inputFile$backgroundSaltConc[inputFile$eventID == currEventID]
+      platSalt <- as.character(inputFile$plateauSaltConc[inputFile$eventID == currEventID])
+      platGas <- as.character(inputFile$plateauGasConc[inputFile$eventID == currEventID])
+      statDist <- inputFile$stationToInjectionDistance[inputFile$eventID == currEventID]
 
-    x <- NA
-    y <- NA
-    meanY <- NA
-    for(j in 1:length(statDist)){
-      currStart <- (j-1)*5
-
-      currBack <- backSalt[j]
-      currPlatSalt <- as.numeric(strsplit(platSalt[j],"\\|")[[1]])
-      currPlatGas <- as.numeric(strsplit(platGas[j],"\\|")[[1]])
-
-      #Background correct plateau salt concentrations
-      corrPlatSalt <- NA
-      if(length(currPlatSalt)>0 && length(currBack)>0){
-        corrPlatSalt <- currPlatSalt-currBack
+      #If the background values are below detection, just use 0
+      if(any(is.na(backSalt))){
+        backSalt[is.na(backSalt)] <- 0
       }
 
-      #Normalize plateau gas concentration to corrected plateau salt concentration
-      normPlatGas <- NA
-      if(length(currPlatGas)>0 && length(corrPlatSalt)>0 && any(!is.na(currPlatGas)) && any(!is.na(corrPlatSalt)) && length(currPlatGas)==length(corrPlatSalt)){
-        normPlatGas <- currPlatGas/corrPlatSalt
+      x <- NA
+      y <- NA
+      meanY <- NA
+      for(j in 1:length(statDist)){
+        currStart <- (j-1)*5
+
+        currBack <- backSalt[j]
+        currPlatSalt <- as.numeric(strsplit(platSalt[j],"\\|")[[1]])
+        currPlatGas <- as.numeric(strsplit(platGas[j],"\\|")[[1]])
+
+        #Background correct plateau salt concentrations
+        corrPlatSalt <- NA
+        if(length(currPlatSalt)>0 && length(currBack)>0){
+          corrPlatSalt <- currPlatSalt-currBack
+        }
+
+        #Normalize plateau gas concentration to corrected plateau salt concentration
+        normPlatGas <- NA
+        if(length(currPlatGas)>0 && length(corrPlatSalt)>0 && any(!is.na(currPlatGas)) && any(!is.na(corrPlatSalt)) && length(currPlatGas)==length(corrPlatSalt)){
+          normPlatGas <- currPlatGas/corrPlatSalt
+        }
+
+        if(length(currPlatSalt)<1 || length(currBack)<1 || length(currPlatGas)<1 || all(is.na(currPlatGas)) || all(is.na(currPlatGas))){
+          print(paste0("Tracer data for station ",j,", eventID ",currEventID," not available."))
+          next
+        }
+
+        if(min(normPlatGas, na.rm = T) <= 0 | min(corrPlatSalt, na.rm = T) <= 0){
+          print("A gas concentration or background corrected salt concentration is zero or negative producing NaNs for LNgasNormalizedToSalt")
+        }
+
+        normPlatGas[normPlatGas <= 0] <- NA
+        corrPlatSalt[corrPlatSalt <= 0] <- NA
+
+        logNormPlatGas <- try(log(normPlatGas))
+
+        numVals <- min(length(corrPlatSalt),length(normPlatGas))
+
+        x[(1+currStart):(numVals+currStart)] <- statDist[j]
+        y[(1+currStart):(numVals+currStart)] <- logNormPlatGas
+        meanY[j] <- log(mean(currPlatGas, na.rm = T)/mean(corrPlatSalt, na.rm = T))
       }
 
-      if(length(currPlatSalt)<1 || length(currBack)<1 || length(currPlatGas)<1 || all(is.na(currPlatGas)) || all(is.na(currPlatGas))){
-        print(paste0("Tracer data for station ",j,", eventID ",currEventID," not available."))
+      #Calculate the Loss Rate, slope of the salt corrected SF6 over the reach
+      lineFit <- NA
+      #Warnings when there isn't data suppressed
+      suppressWarnings(try(lineFit <- lsfit(statDist,meanY), silent = T))
+
+      if(sum(is.na(lineFit))){
+        print(paste0("Warning, loss rate could not be determined for ", currEventID))
         next
       }
 
-      if(min(normPlatGas, na.rm = T) <= 0 | min(corrPlatSalt, na.rm = T) <= 0){
-        print("A gas concentration or background corrected salt concentration is zero or negative producing NaNs for LNgasNormalizedToSalt")
-      }
+      #Clean up y for plotting if there are Inf values
+      x <- x[!is.infinite(y)]
+      y <- y[!is.infinite(y)]
 
-      normPlatGas[normPlatGas <= 0] <- NA
-      corrPlatSalt[corrPlatSalt <= 0] <- NA
+      try(outputDF$lossRateSF6[i] <- lineFit$coefficients[[2]], silent = T)
 
-      logNormPlatGas <- try(log(normPlatGas))
+      if(plot == T & !all(is.na(x)) & !all(is.na(y))){
+        #Save out plot of loss rate to specified directory
+        if(!is.null(savePlotPath)){
+          png(paste0(savePlotPath,"/lossRate_",currEventID,".png"))
+          plot(x,y,main = currEventID, xlab = "meters downstream of injection", ylab = "LN(Tracer Gas/Background Corrected Tracer Salt)", col = "blue")
+          points(statDist,meanY, pch = 19)
+          abline(a = lineFit$coefficients[["Intercept"]], b = lineFit$coefficients[["X"]])
+          mtext(paste("y = ", lineFit$coefficients[[2]], "x +", lineFit$coefficients[[1]], "\n Click anywhere to close and continue"), cex = 0.8)
+          dev.off()
+        }
 
-      numVals <- min(length(corrPlatSalt),length(normPlatGas))
-
-      x[(1+currStart):(numVals+currStart)] <- statDist[j]
-      y[(1+currStart):(numVals+currStart)] <- logNormPlatGas
-      meanY[j] <- log(mean(currPlatGas, na.rm = T)/mean(corrPlatSalt, na.rm = T))
-    }
-
-    #Calculate the Loss Rate, slope of the salt corrected SF6 over the reach
-    lineFit <- NA
-    #Warnings when there isn't data suppressed
-    suppressWarnings(try(lineFit <- lsfit(statDist,meanY), silent = T))
-
-    if(sum(is.na(lineFit))){
-      print(paste0("Warning, loss rate could not be determined for ", currEventID))
-      next
-    }
-
-    #Clean up y for plotting if there are Inf values
-    x <- x[!is.infinite(y)]
-    y <- y[!is.infinite(y)]
-
-    try(outputDF$lossRateSF6[i] <- lineFit$coefficients[[2]], silent = T)
-
-    if(plot == T & !all(is.na(x)) & !all(is.na(y))){
-      #Save out plot of loss rate to specified directory
-      if(!is.null(savePlotPath)){
-        png(paste0(savePlotPath,"/lossRate_",currEventID,".png"))
+        invisible(dev.new(noRStudioGD = TRUE))
         plot(x,y,main = currEventID, xlab = "meters downstream of injection", ylab = "LN(Tracer Gas/Background Corrected Tracer Salt)", col = "blue")
-        points(statDist,meanY, pch = 19)
+        points(statDist,meanY, pch=19)
         abline(a = lineFit$coefficients[["Intercept"]], b = lineFit$coefficients[["X"]])
         mtext(paste("y = ", lineFit$coefficients[[2]], "x +", lineFit$coefficients[[1]], "\n Click anywhere to close and continue"), cex = 0.8)
-        dev.off()
+        #print("Click anywhere on the plot to close and continue")
+        ans <- identify(x, y, n = 1, tolerance = 100, plot = F)
+
+        invisible(dev.off())
       }
-
-      invisible(dev.new(noRStudioGD = TRUE))
-      plot(x,y,main = currEventID, xlab = "meters downstream of injection", ylab = "LN(Tracer Gas/Background Corrected Tracer Salt)", col = "blue")
-      points(statDist,meanY, pch=19)
-      abline(a = lineFit$coefficients[["Intercept"]], b = lineFit$coefficients[["X"]])
-      mtext(paste("y = ", lineFit$coefficients[[2]], "x +", lineFit$coefficients[[1]], "\n Click anywhere to close and continue"), cex = 0.8)
-      #print("Click anywhere on the plot to close and continue")
-      ans <- identify(x, y, n = 1, tolerance = 100, plot = F)
-
-      invisible(dev.off())
     }
 
     #New section that requires the user to pick the range of data for the peak or plateau rising limb
