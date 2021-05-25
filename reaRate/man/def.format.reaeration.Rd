@@ -6,7 +6,7 @@
 \usage{
 def.format.reaeration(
   rea_backgroundFieldCondData,
-  rea_backgroundFieldSaltData,
+  rea_backgroundFieldSaltData = NULL,
   rea_fieldData,
   rea_plateauMeasurementFieldData,
   rea_externalLabDataSalt,

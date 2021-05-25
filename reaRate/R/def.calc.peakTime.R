@@ -36,6 +36,8 @@
 # changelog and author contributions / copyrights
 #   Kaelin M. Cawley (2017-08-03)
 #     original creation
+#   Kaelin M. Cawley (2021-05-25)
+#     updated to handle model injection types
 ##############################################################################################
 def.calc.peakTime <- function(
   loggerData,
@@ -80,8 +82,11 @@ def.calc.peakTime <- function(
   #Trim the loggerData to just the area specified
   loggerData <- loggerData[beginHere:endHere]
 
+  slugInjTypes <- c("NaBr","model","model - slug")
+  criInjTypes <- c("NaCl","model - CRI")
+
   #Slug injections, find the index/measurement number of the tracer peak
-  if(injectionType == "NaBr"){
+  if(injectionType %in% slugInjTypes){
     peakLoc <- which(loggerData == max(loggerData,na.rm = T))
     #Handle when the peakTime is more than one value
     if(length(peakLoc)>1){
@@ -92,12 +97,12 @@ def.calc.peakTime <- function(
     #Background correct the logger data
     loggerData <- loggerData - mean(loggerData[1:5])
     #Calculate the area under the conductivity time series
-    areaResponse <- trapz(1:length(loggerData), loggerData)
+    areaResponse <- pracma::trapz(1:length(loggerData), loggerData)
     #Convert from integration over measurement number to time
     areaResponse <- areaResponse*10 #Each measurement is 10 seconds apart
 
     peakInfoOut <- list("peakLocOut"=peakLocOut,"peakStart"=beginHere,"peakEnd"=endHere, "peakArea"=areaResponse)
-  }else if(injectionType == "NaCl"){
+  }else if(injectionType %in% criInjTypes){
     ##### Constants #####
     cSpan <- 1/10 #Range of data to smooth for a point, higher = smoother
     if(length(loggerData)<40){
@@ -136,6 +141,8 @@ def.calc.peakTime <- function(
     }
 
     peakInfoOut <- list("peakLocOut"=peakLocOut,"peakStart"=beginHere,"peakEnd"=endHere)
+  }else{
+    stop("Invalid injection type, stopping")
   }
 
   return(peakInfoOut)

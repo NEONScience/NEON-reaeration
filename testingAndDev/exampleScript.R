@@ -29,7 +29,8 @@
 #User Inputs
 #siteID <- "BLDE" #Not an ADCP site (yet!), NaBr injection
 #siteID <- "MAYF" #ADCP site for testing
-siteID <- "WALK" #When station 2 is used instead of station 1
+#siteID <- "WALK" #When station 2 is used instead of station 1
+siteID <- "BLUE" #For testing to get travel-time for model experiments
 
 #String constants
 reaDPID <- "DP1.20190.001"
@@ -110,6 +111,50 @@ reaRatesCalc <- reaRate::def.calc.reaeration(inputFile = reaFormatted,
 outputDF <- reaRatesCalc$outputDF
 outputDFClean <- outputDF[outputDF$k600 > 0,]
 plot(outputDFClean$meanQ, outputDFClean$k600)
+
+#Testing when not using loadByProduct
+rea_backgroundFieldCondDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_backgroundFieldCondData.2018-06.expanded.20201218T123834Z.csv",
+                                            sep = ",",
+                                            header = TRUE)
+rea_backgroundFieldSaltDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_backgroundFieldSaltData.2018-06.expanded.20201218T123834Z.csv",
+                                            sep = ",",
+                                            header = TRUE)
+rea_fieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_fieldData.2018-06.expanded.20201218T123834Z.csv",
+                              sep = ",",
+                              header = TRUE)
+rea_plateauMeasurementFieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_plateauMeasurementFieldData.2018-06.expanded.20201218T123834Z.csv",
+                                                sep = ",",
+                                                header = TRUE)
+rea_externalLabDataSaltIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_externalLabDataSalt.2018-06.expanded.20201218T123834Z.csv",
+                                        sep = ",",
+                                        header = TRUE)
+rea_externalLabDataGasIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_externalLabDataGas.2018-06.expanded.20201218T123834Z.csv",
+                                       sep = ",",
+                                       header = TRUE)
+rea_widthFieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_widthFieldData.2018-06.expanded.20201218T123834Z.csv",
+                                   sep = ",",
+                                   header = TRUE)
+#Discharge data download
+dsc_fieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20048.001/NEON.D12.BLDE.DP1.20048.001.dsc_fieldData.2018-06.basic.20210112T153513Z.csv",
+                              sep = ",",
+                              header = TRUE)
+dsc_individualFieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20048.001/NEON.D12.BLDE.DP1.20048.001.dsc_individualFieldData.2018-06.basic.20210112T153513Z.csv",
+                                        sep = ",",
+                                        header = TRUE)
+
+reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn,
+                                               rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
+                                               rea_fieldData = rea_fieldDataIn,
+                                               rea_plateauMeasurementFieldData = rea_plateauMeasurementFieldDataIn,
+                                               rea_externalLabDataSalt = rea_externalLabDataSaltIn,
+                                               rea_externalLabDataGas = rea_externalLabDataGasIn,
+                                               rea_widthFieldData = rea_widthFieldDataIn,
+                                               dsc_fieldData = dsc_fieldDataIn,
+                                               dsc_individualFieldData = dsc_individualFieldDataIn)
+
+
+
+#Testing some ideas with plotly
 
 library(plotly)
 library(crosstalk)
