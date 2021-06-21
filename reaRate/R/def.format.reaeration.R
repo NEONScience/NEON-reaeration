@@ -49,6 +49,8 @@
 #     of how to get it there now
 #   Kaelin M. Cawley
 #     Updated to fix a few user bugs (may have been mac specific) and include model injection types
+#   Kaelin M. Cawley (2021-06-21)
+#     Update to fix a bug with merging model injections
 ##############################################################################################
 def.format.reaeration <- function(
   rea_backgroundFieldCondData,
@@ -83,6 +85,7 @@ def.format.reaeration <- function(
   dsc_fieldData$localDate <- NA
   dsc_fieldDataADCP$localDate <- NA
   rea_plateauMeasurementFieldData$localDate <- NA
+  rea_backgroundFieldCondData$localDate <- NA
   for(currSite in allSites){
     currLocInfo <- geoNEON::getLocBySite(site = currSite)
     currTimeZone <- as.character(currLocInfo$siteTimezone)
@@ -91,12 +94,14 @@ def.format.reaeration <- function(
     dsc_fieldData$localDate[dsc_fieldData$siteID == currSite] <- format(dsc_fieldData$collectDate, tz = currTimeZone, format = "%Y%m%d")
     dsc_fieldDataADCP$localDate[dsc_fieldDataADCP$siteID == currSite] <- format(dsc_fieldDataADCP$endDate, tz = currTimeZone, format = "%Y%m%d")
     rea_plateauMeasurementFieldData$localDate[rea_plateauMeasurementFieldData$siteID == currSite] <- format(rea_plateauMeasurementFieldData$collectDate, tz = currTimeZone, format = "%Y%m%d")
-  }
+    rea_backgroundFieldCondData$localDate[rea_backgroundFieldCondData$siteID == currSite] <- format(rea_backgroundFieldCondData$startDate, tz = currTimeZone, format = "%Y%m%d")
+    }
 
   # Add an eventID for later
   rea_fieldData$eventID <- paste(rea_fieldData$siteID, rea_fieldData$localDate, sep = ".")
   dsc_fieldData$eventID <- paste(dsc_fieldData$siteID, dsc_fieldData$localDate, sep = ".")
   rea_plateauMeasurementFieldData$eventID <- paste(rea_plateauMeasurementFieldData$siteID, rea_plateauMeasurementFieldData$localDate, sep = ".")
+  rea_backgroundFieldCondData$eventID <- paste(rea_backgroundFieldCondData$siteID, rea_backgroundFieldCondData$localDate, sep = ".")
   dsc_fieldDataADCP$eventID <- paste(dsc_fieldDataADCP$siteID, dsc_fieldDataADCP$localDate, sep = ".")
 
   rea_fieldData$namedLocation <- NULL #So that merge goes smoothly
@@ -106,16 +111,32 @@ def.format.reaeration <- function(
   rea_externalLabDataSalt$saltBelowDetectionQF[is.na(rea_externalLabDataSalt$saltBelowDetectionQF)] <- 0
   rea_externalLabDataSalt$finalConcentration[rea_externalLabDataSalt$saltBelowDetectionQF == 1] <- NA
 
-  #Merge the rea_backgroundFieldSaltData and rea_fieldData tables
+  #Merge the rea_backgroundFieldSaltData, rea_backgroundFieldCondData, and rea_fieldData tables to handle the model injections
   if(!is.null(rea_backgroundFieldSaltData)){
     loggerSiteData <- merge(rea_backgroundFieldSaltData,
                             rea_fieldData,
-                            by = c('siteID', 'collectDate'), all = T)
+                            by = c('siteID', 'collectDate'),
+                            all = TRUE)
   }else{
     loggerSiteData <- merge(rea_backgroundFieldCondData,
                             rea_fieldData,
                             by = c('siteID', 'collectDate'),
-                            all = T)
+                            all = TRUE)
+  }
+
+  #Add in station if it's missing for a model injectionType
+  missingStations <- loggerSiteData$eventID[which(is.na(loggerSiteData$namedLocation))]
+  if(length(missingStations) > 0){
+    loggerSiteData <- merge(loggerSiteData,
+                              rea_backgroundFieldCondData[rea_backgroundFieldCondData$eventID %in% missingStations,],
+                              by = c("siteID","collectDate"),
+                              all = TRUE)
+    loggerSiteData$namedLocation <- loggerSiteData$namedLocation.x
+    loggerSiteData$namedLocation[is.na(loggerSiteData$namedLocation.x)] <- loggerSiteData$namedLocation.y[is.na(loggerSiteData$namedLocation.x)]
+
+    #Add back in a few variables that got messed up with the bonus merge step
+    loggerSiteData$stationToInjectionDistance <- loggerSiteData$stationToInjectionDistance.x
+    loggerSiteData$eventID <- loggerSiteData$eventID.x
   }
 
   #Create input file for reaeration calculations
@@ -130,8 +151,9 @@ def.format.reaeration <- function(
     'dripStartTime',
     'backgroundSaltConc',
     'plateauSaltConc',
-    'corrPlatSaltConc',
+    'meanPlatSaltConc',
     'plateauGasConc',
+    'meanPlatGasConc',
     'wettedWidth',
     'waterTemp',
     'hoboSampleID',
@@ -200,6 +222,9 @@ def.format.reaeration <- function(
         rea_externalLabDataSalt$startDate == startDate &
         grepl(repRegex, rea_externalLabDataSalt$saltSampleID)]
 
+    #Calculate a mean concentration for plateau salt
+    outputDF$meanPlatSaltConc[i] <- mean(pSaltConc, na.rm = TRUE)
+
     #Concatenate all values for plotting and assessment
     outputDF$plateauSaltConc[i] <- paste(pSaltConc, collapse = "|")
 
@@ -208,6 +233,9 @@ def.format.reaeration <- function(
       rea_externalLabDataGas$namedLocation == station &
         rea_externalLabDataGas$startDate == startDate &
         grepl(repRegex, rea_externalLabDataGas$gasSampleID)]
+
+    #Calculate a mean concentration for plateau salt
+    outputDF$meanPlatGasConc[i] <- mean(pGasConc, na.rm = TRUE)
 
     #Concatenate all values for plotting and assessment
     outputDF$plateauGasConc[i] <- paste(pGasConc, collapse = "|")

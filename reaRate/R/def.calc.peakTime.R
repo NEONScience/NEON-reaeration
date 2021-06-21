@@ -46,19 +46,29 @@ def.calc.peakTime <- function(
   ){
 
   #Create a plot where users select the range to pick the peak
+  medCond <- median(loggerData, na.rm =TRUE)
+  stdCond <- mad(loggerData, na.rm = TRUE)
+  lowPlot <- ifelse(medCond-30 < 0, 0, medCond-30)
+  highPlot <- ifelse(medCond+30 > max(loggerData, na.rm = TRUE),
+                     max(loggerData, na.rm = TRUE),
+                     medCond+30)
   invisible(dev.new(noRStudioGD = TRUE))
-  plot(seq(along=loggerData), loggerData, xlab = "Measurement Number", ylab = "Specific Conductance")
+  plot(seq(along=loggerData),
+       loggerData,
+       xlab = "Measurement Number",
+       ylab = "Specific Conductance",
+       ylim = c(lowPlot, highPlot))
 
   #Have users choose if the plot has a defined peak
   points(x = c(length(loggerData)*.1,length(loggerData)*.9),
-         y = c(max(loggerData,na.rm = T)*.8,max(loggerData,na.rm = T)*.8),
+         y = c(highPlot*.8,highPlot*.8),
          col = c("green","red"),
          lwd = 2,
          pch = 19,
          cex = 2)
   title(main = paste0("Click green dot (upper lefthand) if the peak/plateau is identifiable. \nClick red dot (upper righthand) if not identifiable.\n",currEventID))
   badPlotBox <- identify(x = c(length(loggerData)*.1,length(loggerData)*.9),
-                         y = c(max(loggerData,na.rm = T)*.8,max(loggerData,na.rm = T)*.8),
+                         y = c(highPlot*.8,highPlot*.8),
                          n = 1,
                          tolerance = 0.25,
                          labels = c("Good", "Bad"))
@@ -68,9 +78,16 @@ def.calc.peakTime <- function(
   if(length(badPlotBox) && badPlotBox==1){
     #If things look good, move on
     invisible(dev.new(noRStudioGD = TRUE))
-    plot(seq(along=loggerData), loggerData, xlab = "Measurement Number", ylab = "Specific Conductance")
+    plot(seq(along=loggerData),
+         loggerData,
+         xlab = "Measurement Number",
+         ylab = "Specific Conductance",
+         ylim = c(lowPlot, highPlot))
     title(main = paste0("Click left and right of of peak/plateau. \n Keep at least the width of the '+' cursor on either side.\n"))
-    ans <- identify(seq(along=loggerData), n = 2, loggerData, tolerance = 0.25)
+    ans <- identify(x = seq(along=loggerData),
+                    y = loggerData,
+                    n = 2,
+                    tolerance = 0.25)
     Sys.sleep(1)
     invisible(dev.off())
     beginHere <- min(ans)

@@ -54,16 +54,16 @@ dsc_fieldDataIn <- qInputList$dsc_fieldData
 dsc_individualFieldDataIn <- qInputList$dsc_individualFieldData
 dsc_fieldDataADCPIn <- qInputList$dsc_fieldDataADCP
 
-# rea_backgroundFieldCondData <- rea_backgroundFieldCondDataIn
-# rea_backgroundFieldSaltData <- rea_backgroundFieldSaltDataIn
-# rea_fieldData <- rea_fieldDataIn
-# rea_plateauMeasurementFieldData <- rea_plateauMeasurementFieldDataIn
-# rea_externalLabDataSalt <- rea_externalLabDataSaltIn
-# rea_externalLabDataGas <- rea_externalLabDataGasIn
-# rea_widthFieldData <- rea_widthFieldDataIn
-# dsc_fieldData <- dsc_fieldDataIn
-# dsc_individualFieldData <- dsc_individualFieldDataIn
-# dsc_fieldDataADCP <- dsc_fieldDataADCPIn
+rea_backgroundFieldCondData <- rea_backgroundFieldCondDataIn
+rea_backgroundFieldSaltData <- rea_backgroundFieldSaltDataIn
+rea_fieldData <- rea_fieldDataIn
+rea_plateauMeasurementFieldData <- rea_plateauMeasurementFieldDataIn
+rea_externalLabDataSalt <- rea_externalLabDataSaltIn
+rea_externalLabDataGas <- rea_externalLabDataGasIn
+rea_widthFieldData <- rea_widthFieldDataIn
+dsc_fieldData <- dsc_fieldDataIn
+dsc_individualFieldData <- dsc_individualFieldDataIn
+dsc_fieldDataADCP <- dsc_fieldDataADCPIn
 
 reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn,
                                       rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
@@ -76,21 +76,21 @@ reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea
                                       dsc_individualFieldData = dsc_individualFieldDataIn,
                                       dsc_fieldDataADCP = dsc_fieldDataADCPIn)
 
-# inputFile = reaFormatted
-# loggerData = reaInputList$rea_conductivityFieldData
-# namedLocation = "namedLocation"
-# injectionTypeName = "injectionType"
-# eventID = "eventID"
-# stationToInjectionDistance = "stationToInjectionDistance"
-# plateauGasConc = "plateauGasConc"
-# corrPlatSaltConc = "corrPlatSaltConc"
-# hoboSampleID = "hoboSampleID"
-# discharge = "fieldDischarge"
-# waterTemp = "waterTemp"
-# wettedWidth = "wettedWidth"
-# plot = TRUE
-# savePlotPath = NULL
-# processingInfo = NULL
+inputFile = reaFormatted
+loggerData = reaInputList$rea_conductivityFieldData
+namedLocation = "namedLocation"
+injectionTypeName = "injectionType"
+eventID = "eventID"
+stationToInjectionDistance = "stationToInjectionDistance"
+plateauGasConc = "plateauGasConc"
+corrPlatSaltConc = "corrPlatSaltConc"
+hoboSampleID = "hoboSampleID"
+discharge = "fieldDischarge"
+waterTemp = "waterTemp"
+wettedWidth = "wettedWidth"
+plot = TRUE
+savePlotPath = NULL
+processingInfo = NULL
 
 reaRatesCalc <- reaRate::def.calc.reaeration(inputFile = reaFormatted,
                                              loggerData = reaInputList$rea_conductivityFieldData,
