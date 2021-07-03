@@ -200,6 +200,16 @@ def.calc.reaeration <- function(
       modelInjType <- TRUE
     }
 
+    #Use drip of slug time for the experiment start time
+    slugTime <- unique(inputFile$slugPourTime[inputFile[[eventIDIdx]] == currEventID])
+    injTime <- unique(inputFile$dripStartTime[inputFile[[eventIDIdx]] == currEventID])
+    if(is.na(slugTime)){
+      currExpStartTime <- unique(inputFile$dripStartTime[inputFile[[eventIDIdx]] == currEventID])
+    }else{
+      currExpStartTime <- unique(inputFile$slugPourTime[inputFile[[eventIDIdx]] == currEventID])
+    }
+
+
     outputDF$siteID[i] <- unique(substr(inputFile[[namLocIdx]][inputFile[[eventIDIdx]] == currEventID], 1, 4))
     S1 <- paste(outputDF$siteID[i], "AOS.reaeration.station.01", sep = ".")
     S2 <- paste(outputDF$siteID[i], "AOS.reaeration.station.02", sep = ".")
@@ -344,10 +354,10 @@ def.calc.reaeration <- function(
 
     #If low range isn't collected use the full range
     if(!all(is.na(s1LoggerData$lowRangeSpCondNonlinear))){
-      condDataS1 <- s1LoggerData$lowRangeSpCondNonlinear
+      condDataS1 <- s1LoggerData[,c("dateTimeLogger","lowRangeSpCondNonlinear")]
       s1RangeFull <- FALSE
     }else if(!all(is.na(s1LoggerData$fullRangeSpCondNonlinear))){
-      condDataS1 <- s1LoggerData$fullRangeSpCondNonlinear
+      condDataS1 <- s1LoggerData[,c("dateTimeLogger","fullRangeSpCondNonlinear")]
       s1RangeFull <- TRUE
     }else{
       print(paste0("Conductivity logger data not available for ", currEventID, ", station S1"))
@@ -355,23 +365,31 @@ def.calc.reaeration <- function(
     }
 
     if(!all(is.na(s4LoggerData$lowRangeSpCondNonlinear))){
-      condDataS4 <- s4LoggerData$lowRangeSpCondNonlinear
+      condDataS4 <- s4LoggerData[,c("dateTimeLogger","lowRangeSpCondNonlinear")]
       s4RangeFull <- FALSE
     }else if(!all(is.na(s4LoggerData$fullRangeSpCondNonlinear))){
-      condDataS4 <- s4LoggerData$fullRangeSpCondNonlinear
+      condDataS4 <- s4LoggerData[,c("dateTimeLogger","fullRangeSpCondNonlinear")]
       s4RangeFull <- TRUE
     }else{
       print(paste0("Conductivity logger data not available for ", currEventID, ", station S4"))
       next
     }
+    names(condDataS1) <- c("dateTimeLogger","spCond")
+    names(condDataS4) <- c("dateTimeLogger","spCond")
 
     #Find the peak locations
+    loggerData = condDataS1
+    currEventID = currEventID
+    injectionType = injectionType
+    expStartTime = currExpStartTime
     s1peakLoc <- reaRate::def.calc.peakTime(loggerData = condDataS1,
                                    currEventID = currEventID,
-                                   injectionType = injectionType) # index to get date and time of peak/plateau half max
+                                   injectionType = injectionType,
+                                   expStartTime = currExpStartTime) # index to get date and time of peak/plateau half max
     s4peakLoc <- reaRate::def.calc.peakTime(loggerData = condDataS4,
                                    currEventID = currEventID,
-                                   injectionType = injectionType) # index to get date and time of peak/plateau half max
+                                   injectionType = injectionType,
+                                   expStartTime = currExpStartTime) # index to get date and time of peak/plateau half max
 
     #If either of the peakTimes are NULL move on to the next eventID
     if(is.null(s1peakLoc)){
