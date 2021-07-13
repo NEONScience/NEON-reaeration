@@ -4,10 +4,10 @@
 \alias{def.calc.peakTime}
 \title{Constant rate or slug travel time between two stations}
 \usage{
-def.calc.peakTime(loggerData, currEventID, injectionType, expStartTime)
+def.calc.peakTime(loggerDataIn, currEventID, injectionType, expStartTime)
 }
 \arguments{
-\item{loggerData}{User input of the R data object holding the conductivity time series
+\item{loggerDataIn}{User input of the R data object holding the conductivity time series
 for a site, date, and station [dataframe]}
 
 \item{currEventID}{User input of the eventID of the tracer experiment [string]}

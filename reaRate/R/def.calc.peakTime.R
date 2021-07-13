@@ -11,7 +11,7 @@
 #' @importFrom pracma trapz
 #' @importFrom stats loess.smooth
 
-#' @param loggerData User input of the R data object holding the conductivity time series
+#' @param loggerDataIn User input of the R data object holding the conductivity time series
 #' for a site, date, and station [dataframe]
 #' @param currEventID User input of the eventID of the tracer experiment [string]
 #' @param injectionType User input of the injection type either "constant" or "slug" [string]
@@ -41,40 +41,41 @@
 #     updated to handle model injection types
 ##############################################################################################
 def.calc.peakTime <- function(
-  loggerData,
+  loggerDataIn,
   currEventID,
   injectionType,
   expStartTime
 ){
 
   #Trim the data for only after the experiment started
-  loggerData <- loggerData[loggerData$dateTimeLogger > expStartTime,]
+  trimTime <- ifelse(min(loggerDataIn$dateTimeLogger) < (expStartTime - 5*60), (expStartTime - 5*60), min(loggerDataIn$dateTimeLogger))
+  loggerDataTrim <- loggerDataIn[loggerDataIn$dateTimeLogger > expStartTime,]
   #plot(loggerData$dateTimeLogger, loggerData$spCond)
-  #lines(trimmedLoggerData$dateTimeLogger, trimmedLoggerData$spCond, col = "blue")
+  #lines(loggerDataTrim$dateTimeLogger, loggerDataTrim$spCond, col = "blue")
 
   #Create a plot where users select the range to pick the peak
-  medCond <- median(loggerData$spCond, na.rm =TRUE)
-  stdCond <- mad(loggerData$spCond, na.rm = TRUE)
+  medCond <- stats::median(loggerDataTrim$spCond, na.rm =TRUE)
+  stdCond <- stats::mad(loggerDataTrim$spCond, na.rm = TRUE)
   lowPlot <- ifelse(medCond-30 < 0, 0, medCond-30)
-  highPlot <- ifelse(medCond+30 > max(loggerData$spCond, na.rm = TRUE),
-                     max(loggerData$spCond, na.rm = TRUE),
+  highPlot <- ifelse(medCond+30 > max(loggerDataTrim$spCond, na.rm = TRUE),
+                     max(loggerDataTrim$spCond, na.rm = TRUE),
                      medCond+30)
   invisible(dev.new(noRStudioGD = TRUE))
-  plot(loggerData$dateTimeLogger,
-       loggerData$spCond,
+  plot(loggerDataTrim$dateTimeLogger,
+       loggerDataTrim$spCond,
        xlab = "Measurement Number",
        ylab = "Specific Conductance",
        ylim = c(lowPlot, highPlot))
 
   #Have users choose if the plot has a defined peak
-  points(x = c(min(loggerData$dateTimeLogger),max(loggerData$dateTimeLogger)),
+  points(x = c(min(loggerDataTrim$dateTimeLogger),max(loggerDataTrim$dateTimeLogger)),
          y = c(highPlot*.8,highPlot*.8),
          col = c("green", "red"),
          lwd = 2,
          pch = 19,
          cex = 2)
   title(main = paste0("Click green dot (upper lefthand) if the peak/plateau is identifiable. \nClick red dot (upper righthand) if not identifiable.\n",currEventID))
-  badPlotBox <- identify(x = c(min(loggerData$dateTimeLogger),max(loggerData$dateTimeLogger)),
+  badPlotBox <- identify(x = c(min(loggerDataTrim$dateTimeLogger),max(loggerDataTrim$dateTimeLogger)),
                          y = c(highPlot*.8,highPlot*.8),
                          n = 1,
                          tolerance = 0.25,
@@ -85,72 +86,89 @@ def.calc.peakTime <- function(
   if(length(badPlotBox) && badPlotBox==1){
     #If things look good, move on
     invisible(dev.new(noRStudioGD = TRUE))
-    plot(loggerData$dateTimeLogger,
-         loggerData$spCond,
+    plot(loggerDataTrim$dateTimeLogger,
+         loggerDataTrim$spCond,
          xlab = "Measurement Number",
          ylab = "Specific Conductance",
          ylim = c(lowPlot, highPlot))
-    title(main = paste0("The plot stars at the time of the exeriment.\nClick right of of peak/plateau to where the useful timeseries ends.\n"))
-    ans <- identify(x = loggerData$dateTimeLogger,
-                    y = loggerData$spCond,
+    title(main = paste0("The plot starts at the time of the injection.\nClick right of the peak/plateau where the useful timeseries ends.\n"))
+    ans <- identify(x = loggerDataTrim$dateTimeLogger,
+                    y = loggerDataTrim$spCond,
                     n = 1,
                     tolerance = 0.25)
     Sys.sleep(1)
     invisible(dev.off())
-    beginHere <- ans
+    endHere <- ans
   }else{
     return(NULL)
   }
 
   #Trim the loggerData to just the area specified
-  loggerData <- loggerData[1:endHere,]
+  loggerDataTrim <- loggerDataTrim[1:endHere,]
 
   slugInjTypes <- c("NaBr","model","model - slug")
   criInjTypes <- c("NaCl","model - CRI")
 
-  loggerData$originalSpCond <- loggerData$spCond
+  loggerDataTrim$originalSpCond <- loggerDataTrim$spCond
   # If it's a CRI convert to a peak by taking the derivative
   if(injectionType %in% criInjTypes){
-    ##### Constants #####
-    cSpan <- 1/10 #Range of data to smooth for a point, higher = smoother
-    if(length(loggerData$spCond)<60){
-      cSpan <- 0.3 # Used to be 0.5 for things under 40
-    }
-    if(length(loggerData$spCond)<40){
-      cSpan <- 0.5 # Used to be 0.5 for things under 40
-    }
-    cDegree <- 2 #1 linear fit, 2 for 2nd order polynomial
-    cEvaluation <- length(loggerData$spCond) #Total number of point after loess smoothing
+    # ##### Constants #####
+    # cSpan <- 1/10 #Range of data to smooth for a point, higher = smoother
+    # if(length(loggerDataTrim$spCond)<110){
+    #   cSpan <- 0.17 # Need something in between for the shorter timeseries
+    # }
+    # if(length(loggerDataTrim$spCond)<60){
+    #   cSpan <- 0.3 # Used to be 0.5 for things under 40
+    # }
+    # if(length(loggerDataTrim$spCond)<40){
+    #   cSpan <- 0.5 # Used to be 0.5 for things under 40
+    # }
+    # cDegree <- 2 #1 linear fit, 2 for 2nd order polynomial
+    # cEvaluation <- length(loggerDataTrim$spCond) #Total number of point after loess smoothing
     #cCondTH <- 0.05 #Threshold to count as ~0 for derivative
     #near0Len <- 3
     #near0Fac <- 10 #Relative change for start check and end check
     #absChange <- 2 #Absolute change for start check and end check
 
-    reaMeasCount <- seq(along = loggerData$spCond)
+    #Probably delete this reaMeasCount <- seq(along = loggerDataTrim$spCond)
     #smooth the tracer data
-    #Warnings are created sometimes when it runs against the edge of data, so supressing warnings from the smoothing
-    suppressWarnings(cond.loess <- loess.smooth(reaMeasCount, loggerData$spCond, span = cSpan, degree = cDegree, evaluation = cEvaluation, family = "symmetric"))
-    if(!exists("cond.loess")){
-      print("Error finding peak time, smoothing could not be applied")
-      return(NA)
+    #Warnings are created sometimes when it runs against the edge of data, so suppressing warnings from the smoothing
+    # suppressWarnings(cond.loess <- loess.smooth(loggerDataTrim$dateTimeLogger, loggerDataTrim$spCond, span = cSpan, degree = cDegree, evaluation = cEvaluation, family = "symmetric"))
+    # if(!exists("cond.loess")){
+    #   print("Error finding peak time, smoothing could not be applied")
+    #   return(NA)
+    # }
+    # plot(cond.loess$x, loggerDataTrim$originalSpCond, xlab = "Measurement Number", ylab = "Specific Conductance")
+    # lines(cond.loess$x, cond.loess$y, col = "green", lwd = 2)
+
+    #Manually smoothing the data
+    loggerDataTrim$test <- NA
+    for(i in 4:(length(loggerDataTrim$originalSpCond)-3)){
+      loggerDataTrim$test[i] <- mean(loggerDataTrim$originalSpCond[(i-3):(i+3)])
     }
-    #plot(reaMeasCount, loggerData$spCond, xlab = "Measurement Number", ylab = "Specific Conductance")
-    #lines(cond.loess$x,cond.loess$y, col = "green", lwd = 2)
+    loggerDataTrim$test[1:3] <- mean(loggerDataTrim$test[4:7], na.rm = TRUE)
+    loggerDataTrim$test[(length(loggerDataTrim$originalSpCond)-3):length(loggerDataTrim$originalSpCond)] <- mean(loggerDataTrim$test[(length(loggerDataTrim$originalSpCond)-7):(length(loggerDataTrim$originalSpCond)-3)], na.rm = TRUE)
+    plot(loggerDataTrim$dateTimeLogger, loggerDataTrim$originalSpCond, ylim = c(min(loggerDataTrim$originalSpCond, na.rm = TRUE), max(loggerDataTrim$originalSpCond, na.rm = TRUE)))
+    par(new = TRUE)
+    plot(loggerDataTrim$dateTimeLogger, loggerDataTrim$test, col = "blue", ylim = c(min(loggerDataTrim$originalSpCond, na.rm = TRUE), max(loggerDataTrim$originalSpCond, na.rm = TRUE)))
 
     #do a quick and dirty derivative
-    for(i in 1:length(cond.loess$x)-1){
-      cond.loess$z[i] <- (cond.loess$y[i+1]-cond.loess$y[i])/(cond.loess$x[i+1]-cond.loess$x[i])
+    loggerDataTrim$derivative <- NA
+    for(i in 1:(length(loggerDataTrim$test)-1)){
+      loggerDataTrim$derivative[i] <- (loggerDataTrim$test[i+1]-loggerDataTrim$test[i])/as.numeric(difftime(loggerDataTrim$dateTimeLogger[i+1],loggerDataTrim$dateTimeLogger[i], units = "min"))
     }
-    # plot(cond.loess$x, cond.loess$y)
-    # par(new = TRUE)
-    # plot(cond.loess$x[2:length(cond.loess$x)],cond.loess$z, col = "green", ylim = c(-1,1))
-    loggerData$spCond[2:length(loggerData$spCond)] <- cond.loess$z
-    loggerData$spCond[1] <- mean(cond.loess$z[1:4])
+
+    plot(loggerDataTrim$dateTimeLogger, loggerDataTrim$derivative)
+    loggerDataTrim$spCond <- loggerDataTrim$derivative
+    loggerDataTrim$spCond[length(loggerDataTrim$spCond)] <- 0
+
+    # loggerDataTrim$spCond[2:length(loggerDataTrim$spCond)] <- cond.loess$z
+    # loggerDataTrim$spCond[1] <- mean(cond.loess$z[1:4])
 
   }
 
   # Now that you have a peak, calculate the max location, temporal centroid, and harmonic mean
-  peakTime <- loggerData$dateTimeLogger[which(loggerData$spCond == max(loggerData$spCond,na.rm = T))]
+  peakTime <- loggerDataTrim$dateTimeLogger[which(loggerDataTrim$spCond == max(loggerDataTrim$spCond,na.rm = T))]
   #Handle when the peakTime is more than one value
   if(length(peakTime)>1){
     peakTime <- mean(peakTime,na.rm = TRUE)
@@ -159,50 +177,57 @@ def.calc.peakTime <- function(
   #Now work on the ones the require integrating the area under the peak
 
   #Assume the first 5 points are all background concentrations
-  backgroundConc <- mean(loggerData$spCond[1:5], na.rm = TRUE)
+  backgroundConc <- mean(loggerDataTrim$spCond[1:5], na.rm = TRUE)
 
   #Background correct the logger data
-  loggerData$corrSpCond <- loggerData$spCond - backgroundConc
+  loggerDataTrim$corrSpCond <- loggerDataTrim$spCond - backgroundConc
 
   #Add the time difference column
-  loggerData$timeDiff <- as.numeric(difftime(loggerData$dateTimeLogger, loggerData$dateTimeLogger[1], units = "sec"))
+  loggerDataTrim$timeDiff <- as.numeric(difftime(loggerDataTrim$dateTimeLogger, loggerDataTrim$dateTimeLogger[1], units = "sec"))
 
   #Now loop through and calculate the centriod time (tc) and harmonic mean time (thm)
-  areaUnderCurve <- pracma::trapz(loggerData$timeDiff, loggerData$spCond)
+  areaUnderCurve <- pracma::trapz(loggerDataTrim$timeDiff, loggerDataTrim$spCond)
 
-  loggerData$tc <- NA
-  loggerData$hm <- NA
-  ti <- loggerData$timeDiff[1]
+  loggerDataTrim$tc <- NA
+  loggerDataTrim$hm <- NA
+  ti <- loggerDataTrim$timeDiff[1]
   tc <- 0
   hm <- 0
-  for(i in 2:length(loggerData$spCond)){
-    t <- loggerData$timeDiff[i]
+  for(i in 2:length(loggerDataTrim$spCond)){
+    t <- loggerDataTrim$timeDiff[i]
     dt <- t - ti
-    px <- (1/areaUnderCurve) * loggerData$spCond[i]
+    px <- (1/areaUnderCurve) * loggerDataTrim$spCond[i]
 
     tcToAdd <- t * px * dt
-    loggerData$tc[i] <- tcToAdd
+    loggerDataTrim$tc[i] <- tcToAdd
     tc <- tc + tcToAdd
 
     hmToAdd <- (1/t) * px * dt
-    loggerData$hm[i] <- hmToAdd
+    loggerDataTrim$hm[i] <- hmToAdd
     hm <- hm + hmToAdd
 
     ti <- t
   }
   thm <- 1/hm
-  centroidTime <- loggerData$dateTimeLogger[1] + tc
-  harmonicMeanTime <- loggerData$dateTimeLogger[1] + thm
+  centroidTime <- loggerDataTrim$dateTimeLogger[1] + tc
+  harmonicMeanTime <- loggerDataTrim$dateTimeLogger[1] + thm
 
-  # #Take a look at the outputs
-  # plot(loggerData$dateTimeLogger, loggerData$originalSpCond)
-  # par(new = TRUE)
-  # plot(loggerData$dateTimeLogger, loggerData$spCond, xlab = "", ylab = "", col = "blue", type = "l", axes = FALSE)
-  # abline(v = peakTime, col = "cyan")
-  # abline(v = tc+loggerData$dateTimeLogger[1], col = "green")
-  # abline(v = thm+loggerData$dateTimeLogger[1], col = "purple")
+  #Take a look at the outputs
+  plot(loggerDataTrim$dateTimeLogger, loggerDataTrim$originalSpCond)
+  lines(loggerDataTrim$dateTimeLogger, loggerDataTrim$test)
+  par(new = TRUE)
+  plot(loggerDataTrim$dateTimeLogger, loggerDataTrim$spCond, xlab = "", ylab = "", col = "blue", type = "l", axes = FALSE)
+  abline(v = peakTime, col = "cyan")
+  abline(v = tc+loggerDataTrim$dateTimeLogger[1], col = "green")
+  abline(v = thm+loggerDataTrim$dateTimeLogger[1], col = "purple")
+  graphics::legend(x = "right", legend = c("smoothed","derivative","peakTime","centroidTime","harmonicMeanTime"), lty = c(1,1,1,1), col = c("black","blue","cyan","green","purple"))
 
-  peakInfoOut <- list("peakTime"=peakTime,"peakArea"=areaUnderCurve,"centroidTime"=endHere, "harmonicMeanTime"=areaResponse)
+  peakInfoOut <- list("backgroundConc"=backgroundConc,
+                      "peakArea"=areaUnderCurve,
+                      "peakTime"=peakTime,
+                      "centroidTime"=centroidTime,
+                      "harmonicMeanTime"=harmonicMeanTime,
+                      "endPlotTime"=loggerDataTrim$dateTimeLogger[endHere])
 
   return(peakInfoOut)
 }
