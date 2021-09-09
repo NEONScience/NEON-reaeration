@@ -27,10 +27,10 @@
 ##############################################################################################
 
 #User Inputs
-#siteID <- "BLDE" #Not an ADCP site (yet!), NaBr injection
+siteID <- "BLDE" #Not an ADCP site (yet!), NaBr injection
 #siteID <- "MAYF" #ADCP site for testing
 #siteID <- "WALK" #When station 2 is used instead of station 1
-siteID <- "BLUE" #For testing to get travel-time for model experiments
+#siteID <- "BLUE" #For testing to get travel-time for model experiments
 
 #String constants
 reaDPID <- "DP1.20190.001"
@@ -43,6 +43,7 @@ rea_backgroundFieldCondDataIn <- reaInputList$rea_backgroundFieldCondData
 rea_backgroundFieldSaltDataIn <- reaInputList$rea_backgroundFieldSaltData
 rea_fieldDataIn <- reaInputList$rea_fieldData
 rea_plateauMeasurementFieldDataIn <- reaInputList$rea_plateauMeasurementFieldData
+rea_plateauSampleFieldDataIn <- reaInputList$rea_plateauSampleFieldData
 rea_externalLabDataSaltIn <- reaInputList$rea_externalLabDataSalt
 rea_externalLabDataGasIn <- reaInputList$rea_externalLabDataGas
 rea_widthFieldDataIn <- reaInputList$rea_widthFieldData
@@ -58,6 +59,7 @@ rea_backgroundFieldCondData <- rea_backgroundFieldCondDataIn
 rea_backgroundFieldSaltData <- rea_backgroundFieldSaltDataIn
 rea_fieldData <- rea_fieldDataIn
 rea_plateauMeasurementFieldData <- rea_plateauMeasurementFieldDataIn
+rea_plateauSampleFieldData <- rea_plateauSampleFieldDataIn
 rea_externalLabDataSalt <- rea_externalLabDataSaltIn
 rea_externalLabDataGas <- rea_externalLabDataGasIn
 rea_widthFieldData <- rea_widthFieldDataIn
@@ -69,12 +71,29 @@ reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea
                                       rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
                                       rea_fieldData = rea_fieldDataIn,
                                       rea_plateauMeasurementFieldData = rea_plateauMeasurementFieldDataIn,
+                                      rea_plateauSampleFieldData = rea_plateauSampleFieldDataIn,
                                       rea_externalLabDataSalt = rea_externalLabDataSaltIn,
                                       rea_externalLabDataGas = rea_externalLabDataGasIn,
                                       rea_widthFieldData = rea_widthFieldDataIn,
                                       dsc_fieldData = dsc_fieldDataIn,
                                       dsc_individualFieldData = dsc_individualFieldDataIn,
                                       dsc_fieldDataADCP = dsc_fieldDataADCPIn)
+
+inputFile = reaFormatted
+injectionTypeName = "injectionType"
+eventID = "eventID"
+stationToInjectionDistance = "stationToInjectionDistance"
+plateauGasConc = "plateauGasConc"
+corrPlatSaltConc = "corrPlatSaltConc"
+savePlotPath = "C:/Users/kcawley/Desktop/reaTesting"
+
+plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
+                                        injectionTypeName = "injectionType",
+                                        eventID = "eventID",
+                                        stationToInjectionDistance = "stationToInjectionDistance",
+                                        plateauGasConc = "plateauGasConc",
+                                        corrPlatSaltConc = "corrPlatSaltConc",
+                                        savePlotPath = "C:/Users/kcawley/Desktop/reaTesting")
 
 inputFile = reaFormatted
 loggerData = reaInputList$rea_conductivityFieldData
@@ -89,7 +108,7 @@ discharge = "fieldDischarge"
 waterTemp = "waterTemp"
 wettedWidth = "wettedWidth"
 plot = TRUE
-savePlotPath = NULL
+savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/"
 processingInfo = NULL
 
 reaRatesCalc <- reaRate::def.calc.reaeration(inputFile = reaFormatted,

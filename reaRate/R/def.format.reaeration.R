@@ -17,6 +17,7 @@
 #' @param rea_backgroundFieldSaltData This dataframe contains the data for the NEON rea_backgroundFieldSaltData table [dataframe]
 #' @param rea_fieldData This dataframe contains the data for the NEON rea_fieldData table [dataframe]
 #' @param rea_plateauMeasurementFieldData This dataframe contains the data for the NEON rea_plateauMeasurementFieldData table [dataframe]
+#' @param rea_plateauSampleFieldData This dataframe contains the data for the NEON rea_plateauSampleFieldData table [dataframe]
 #' @param rea_externalLabDataSalt This dataframe contains the data for the NEON rea_externalLabDataSalt table [dataframe]
 #' @param rea_externalLabDataGas This dataframe contains the data for the NEON rea_externalLabDataGas table [dataframe]
 #' @param rea_widthFieldData This dataframe contains the data for the NEON rea_widthFieldData table [dataframe]
@@ -57,6 +58,7 @@ def.format.reaeration <- function(
   rea_backgroundFieldSaltData = NULL,
   rea_fieldData,
   rea_plateauMeasurementFieldData,
+  rea_plateauSampleFieldData,
   rea_externalLabDataSalt,
   rea_externalLabDataGas,
   rea_widthFieldData,
@@ -139,6 +141,12 @@ def.format.reaeration <- function(
     loggerSiteData$eventID <- loggerSiteData$eventID.x
   }
 
+  #Add the injectate, background, or plateau type to external lab data
+  rea_externalLabDataSalt$sampleType <- NA
+  rea_externalLabDataSalt$sampleType[rea_externalLabDataSalt$saltSampleID %in% rea_fieldData$injectateSampleID] <- "injectate"
+  rea_externalLabDataSalt$sampleType[rea_externalLabDataSalt$saltSampleID %in% rea_backgroundFieldSaltData$saltBackgroundSampleID] <- "background"
+  rea_externalLabDataSalt$sampleType[rea_externalLabDataSalt$saltSampleID %in% rea_plateauSampleFieldData$saltTracerSampleID] <- "plateau"
+
   #Create input file for reaeration calculations
   outputDFNames <- c(
     'siteID',
@@ -199,28 +207,23 @@ def.format.reaeration <- function(
     station <- outputDF$namedLocation[i]
     stationType <- substr(station, 6, nchar(station))
 
-    repRegex <- switch(stationType,
-                       "AOS.reaeration.station.01" = "\\.0[12345]\\.",
-                       "AOS.reaeration.station.02" = "\\.0[6789]\\.|\\.10\\.",
-                       "AOS.reaeration.station.03" = "\\.1[12345]\\.",
-                       "AOS.reaeration.station.04" = "\\.1[6789]\\.|\\.20\\."
-    )
-
     #Fill in hoboSampleID from background logger table
     try(outputDF$hoboSampleID[i] <- rea_backgroundFieldCondData$hoboSampleID[
       rea_backgroundFieldCondData$namedLocation == station &
         rea_backgroundFieldCondData$startDate == startDate], silent = T)
 
     #Fill in background concentration data
-    try(outputDF$backgroundSaltConc[i] <- rea_externalLabDataSalt$finalConcentration[rea_externalLabDataSalt$namedLocation == station &
-                                                                                       rea_externalLabDataSalt$startDate == startDate &
-                                                                                       grepl("[A-Z]{4}\\.B[1-4]",rea_externalLabDataSalt$saltSampleID)], silent = T)
+    try(outputDF$backgroundSaltConc[i] <- rea_externalLabDataSalt$finalConcentration[
+      rea_externalLabDataSalt$namedLocation == station &
+        rea_externalLabDataSalt$startDate == startDate &
+        rea_externalLabDataSalt$sampleType == "background"], silent = T)
 
     #Fill in plateau concentration data for constant rate injection
+    # Need to join with the field data rather than use the sampleID since we're switching to barcodes only
     pSaltConc <- rea_externalLabDataSalt$finalConcentration[
       rea_externalLabDataSalt$namedLocation == station &
         rea_externalLabDataSalt$startDate == startDate &
-        grepl(repRegex, rea_externalLabDataSalt$saltSampleID)]
+        rea_externalLabDataSalt$sampleType == "plateau"]
 
     #Calculate a mean concentration for plateau salt
     outputDF$meanPlatSaltConc[i] <- mean(pSaltConc, na.rm = TRUE)
@@ -231,8 +234,7 @@ def.format.reaeration <- function(
     #Fill in plateau gas concentration
     pGasConc <- rea_externalLabDataGas$gasTracerConcentration[
       rea_externalLabDataGas$namedLocation == station &
-        rea_externalLabDataGas$startDate == startDate &
-        grepl(repRegex, rea_externalLabDataGas$gasSampleID)]
+        rea_externalLabDataGas$startDate == startDate]
 
     #Calculate a mean concentration for plateau salt
     outputDF$meanPlatGasConc[i] <- mean(pGasConc, na.rm = TRUE)

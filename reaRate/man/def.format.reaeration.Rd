@@ -9,6 +9,7 @@ def.format.reaeration(
   rea_backgroundFieldSaltData = NULL,
   rea_fieldData,
   rea_plateauMeasurementFieldData,
+  rea_plateauSampleFieldData,
   rea_externalLabDataSalt,
   rea_externalLabDataGas,
   rea_widthFieldData,
@@ -25,6 +26,8 @@ def.format.reaeration(
 \item{rea_fieldData}{This dataframe contains the data for the NEON rea_fieldData table [dataframe]}
 
 \item{rea_plateauMeasurementFieldData}{This dataframe contains the data for the NEON rea_plateauMeasurementFieldData table [dataframe]}
+
+\item{rea_plateauSampleFieldData}{This dataframe contains the data for the NEON rea_plateauSampleFieldData table [dataframe]}
 
 \item{rea_externalLabDataSalt}{This dataframe contains the data for the NEON rea_externalLabDataSalt table [dataframe]}
 
