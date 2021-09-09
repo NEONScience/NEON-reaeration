@@ -3,6 +3,7 @@
 export(def.calc.peakTime)
 export(def.calc.reaeration)
 export(def.format.reaeration)
+export(gas.loss.rate.plot)
 importFrom(geoNEON,getLocBySite)
 importFrom(grDevices,dev.copy)
 importFrom(grDevices,dev.new)

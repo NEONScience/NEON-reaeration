@@ -168,7 +168,8 @@ def.calc.reaeration <- function(
     'gasTransVelO2',
     'meanQ',
     'meanTemp',
-    'k600'
+    'k600',
+    'K600'
   )
 
   #Only use the unique eventIDs
@@ -518,7 +519,8 @@ def.calc.reaeration <- function(
     #Normalize to schmidt number of 600
     outputDF$meanTemp[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, watTempIdx]
     scO2 <- A_O2 - B_O2 * outputDF$meanTemp[i] + C_O2 * outputDF$meanTemp[i]^2 - D_O2 * outputDF$meanTemp[i]^3
-    outputDF$k600[i] <- (Sc_CO2/scO2)^(-0.5) * outputDF$gasTransVelO2[i] #Equation 1, Wanninkhof (1992)
+    outputDF$k600[i] <- (Sc_CO2/scO2)^(-0.5) * outputDF$gasTransVelO2[i] #Equation 1, Wanninkhof (1992) "little k"
+    outputDF$K600 <- outputDF$k600[i] / outputDF$meanDepth[i] # d^-1 "Big K"
 
   }
   outputList <- list("outputDF"=outputDF,"inputFile"=inputFile)
