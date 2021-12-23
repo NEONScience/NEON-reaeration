@@ -27,7 +27,8 @@
 ##############################################################################################
 
 #User Inputs
-siteID <- "BLDE" #Not an ADCP site (yet!), NaBr injection
+siteID <- "GUIL"
+#siteID <- "CARI" #Not an ADCP site (yet!), NaBr injection
 #siteID <- "MAYF" #ADCP site for testing
 #siteID <- "WALK" #When station 2 is used instead of station 1
 #siteID <- "BLUE" #For testing to get travel-time for model experiments
@@ -37,7 +38,7 @@ reaDPID <- "DP1.20190.001"
 dscDPID <- "DP1.20048.001"
 
 # Download Reaeration Data
-reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID, site = siteID, check.size = FALSE)
+reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID, site = siteID, check.size = FALSE, startdate = "2020-01-01", enddate = "2020-06-01")
 
 rea_backgroundFieldCondDataIn <- reaInputList$rea_backgroundFieldCondData
 rea_backgroundFieldSaltDataIn <- reaInputList$rea_backgroundFieldSaltData
