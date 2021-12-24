@@ -232,6 +232,7 @@ def.calc.reaeration <- function(
 
       #Background correct salt samples, normalize gas concentration, and natural log transform the plateau gas concentrations
       backSalt <- inputFile$backgroundSaltConc[inputFile$eventID == currEventID]
+      backCond <- mean(inputFile$meanBackgoundCond[inputFile$eventID == currEventID], na.rm = TRUE)
       platSalt <- as.character(inputFile$plateauSaltConc[inputFile$eventID == currEventID])
       platGas <- as.character(inputFile$plateauGasConc[inputFile$eventID == currEventID])
       statDist <- inputFile$stationToInjectionDistance[inputFile$eventID == currEventID]
@@ -397,11 +398,13 @@ def.calc.reaeration <- function(
     s1peakLoc <- reaRate::def.calc.peakTime(loggerDataIn = condDataS1,
                                             currEventID = currEventID,
                                             injectionType = injectionType,
-                                            expStartTime = currExpStartTime) # index to get date and time of peak/plateau half max
+                                            expStartTime = currExpStartTime,
+                                            backgroundCond = backCond) # index to get date and time of peak/plateau half max
     s4peakLoc <- reaRate::def.calc.peakTime(loggerDataIn = condDataS4,
                                             currEventID = currEventID,
                                             injectionType = injectionType,
-                                            expStartTime = currExpStartTime) # index to get date and time of peak/plateau half max
+                                            expStartTime = currExpStartTime,
+                                            backgroundCond = backCond) # index to get date and time of peak/plateau half max
 
     #If either of the peakTimes are NULL move on to the next eventID
     if(is.null(s1peakLoc)){
@@ -448,13 +451,13 @@ def.calc.reaeration <- function(
       #   s4YData <- s4LoggerData$lowRangeHobo[s4peakLoc$peakStart:s4peakLoc$peakEnd]
       # }
 
-      s1YData <- condDataS1$spCond[condDataS1$dateTimeLogger > currExpStartTime & condDataS1$dateTimeLogger < s1peakLoc$endPlotTime]
-      s4YData <- condDataS4$spCond[condDataS4$dateTimeLogger > currExpStartTime & condDataS4$dateTimeLogger < s4peakLoc$endPlotTime]
+      s1YData <- condDataS1$spCond[condDataS1$dateTimeLogger > s1peakLoc$startPlotTime & condDataS1$dateTimeLogger < s1peakLoc$endPlotTime]
+      s4YData <- condDataS4$spCond[condDataS4$dateTimeLogger > s4peakLoc$startPlotTime & condDataS4$dateTimeLogger < s4peakLoc$endPlotTime]
 
       invisible(dev.new(noRStudioGD = TRUE))
-      x <- condDataS1$dateTimeLogger[condDataS1$dateTimeLogger > currExpStartTime & condDataS1$dateTimeLogger < s1peakLoc$endPlotTime]
+      x <- condDataS1$dateTimeLogger[condDataS1$dateTimeLogger > s1peakLoc$startPlotTime & condDataS1$dateTimeLogger < s1peakLoc$endPlotTime]
       #y <- s1LoggerData$fullRangeSpCondNonlinear[s1peakLoc$peakStart:s1peakLoc$peakEnd]
-      minTime <- currExpStartTime
+      minTime <- min(s1peakLoc$startPlotTime,s4peakLoc$startPlotTime)
       maxTime <- max(s1peakLoc$endPlotTime,s4peakLoc$endPlotTime)
       minY <- min(s1YData,s4YData,na.rm = TRUE)
       maxY <- max(s1YData,s4YData,na.rm = TRUE)
@@ -468,12 +471,12 @@ def.calc.reaeration <- function(
              ylim = c(minY,maxY),
              ylab = "Conductivity, uS",
              xlab = "Time (UTC)")
-        mtext(paste0("Travel Time = ",outputDF$travelTime[i]," seconds, (",round(as.numeric(outputDF$centroidTravelTime[i])/60,digits=1) ," min)\n Click anywhere to close and continue"), cex = 1.2)
-        points(condDataS4$dateTimeLogger[condDataS4$dateTimeLogger > currExpStartTime & condDataS4$dateTimeLogger < s4peakLoc$endPlotTime],
+        mtext(paste0("Travel Time = ",outputDF$peakMaxTravelTime[i]," seconds, (",round(as.numeric(outputDF$peakMaxTravelTime[i])/60,digits=1) ," min)\n Click anywhere to close and continue"), cex = 1.2)
+        points(condDataS4$dateTimeLogger[condDataS4$dateTimeLogger > s4peakLoc$startPlotTime & condDataS4$dateTimeLogger < s4peakLoc$endPlotTime],
                s4YData,
                col = "blue")
-        abline(v = s1peakLoc$centroidTime)
-        abline(v = s4peakLoc$centroidTime, col = "blue")
+        abline(v = s1peakLoc$peakTime)
+        abline(v = s4peakLoc$peakTime, col = "blue")
         graphics::legend(x = "bottomright", legend = c("upstream","downstream"), lty = c(1,1), col = c("black","blue"))
         dev.off()
       }
@@ -483,12 +486,12 @@ def.calc.reaeration <- function(
            ylim = c(minY,maxY),
            ylab = "Conductivity, uS",
            xlab = "Time (UTC)")
-      mtext(paste0("Travel Time = ",outputDF$travelTime[i]," seconds, (",round(as.numeric(outputDF$centroidTravelTime[i])/60,digits=1) ," min)\n Click anywhere to close and continue"), cex = 1.2)
-      points(condDataS4$dateTimeLogger[condDataS4$dateTimeLogger > currExpStartTime & condDataS4$dateTimeLogger < s4peakLoc$endPlotTime],
+      mtext(paste0("Travel Time = ",outputDF$peakMaxTravelTime[i]," seconds, (",round(as.numeric(outputDF$peakMaxTravelTime[i])/60,digits=1) ," min)\n Click anywhere to close and continue"), cex = 1.2)
+      points(condDataS4$dateTimeLogger[condDataS4$dateTimeLogger > s4peakLoc$startPlotTime & condDataS4$dateTimeLogger < s4peakLoc$endPlotTime],
              s4YData,
              col = "blue")
-      abline(v = s1peakLoc$centroidTime)
-      abline(v = s4peakLoc$centroidTime, col = "blue")
+      abline(v = s1peakLoc$peakTime)
+      abline(v = s4peakLoc$peakTime, col = "blue")
       graphics::legend(x = "bottomright", legend = c("upstream","downstream"), lty = c(1,1), col = c("black","blue"))
       ans <- identify(x, s1YData, n = 1, tolerance = 100, plot = F)
       invisible(dev.off())
@@ -506,21 +509,21 @@ def.calc.reaeration <- function(
     outputDF$centroidVelocity[i] <- outputDF$btwStaDist[i]/as.numeric(outputDF$centroidTravelTime[i]) # m/s
     outputDF$harmonicMeanVelocity[i] <- outputDF$btwStaDist[i]/as.numeric(outputDF$harmonicMeanTravelTime[i]) # m/s
 
-    outputDF$reaRateSF6[i] <- outputDF$lossRateSF6[i] * outputDF$centroidVelocity[i] * -1 * 86400# m^-1 * m/s * -1 for negative slope and 86400 for number of seconds in a day
+    outputDF$reaRateSF6[i] <- outputDF$lossRateSF6[i] * outputDF$peakMaxVelocity[i] * -1 * 86400# m^-1 * m/s * -1 for negative slope and 86400 for number of seconds in a day
 
     #Calculate the gas transfer velocity for oxygen
     outputDF$reaRateO2[i] <- outputDF$reaRateSF6[i] * reaRateConv #convert from SF6 to O2 reaeration rate coefficient
 
     #Determine gas transfer velocity for O2
     outputDF$meanQ[i] <- mean(inputFile[inputFile[[eventIDIdx]] == currEventID, QIdx], na.rm = T)*convLpsCms # m^3 s^-1
-    outputDF$meanDepth[i] <- outputDF$meanQ[i]/(inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, wwIdx]*outputDF$centroidVelocity[i]) # meters
+    outputDF$meanDepth[i] <- outputDF$meanQ[i]/(inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, wwIdx]*outputDF$peakMaxVelocity[i]) # meters
     outputDF$gasTransVelO2[i] <- outputDF$reaRateO2[i] * outputDF$meanDepth[i] # d^-1 * m
 
     #Normalize to schmidt number of 600
     outputDF$meanTemp[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, watTempIdx]
     scO2 <- A_O2 - B_O2 * outputDF$meanTemp[i] + C_O2 * outputDF$meanTemp[i]^2 - D_O2 * outputDF$meanTemp[i]^3
     outputDF$k600[i] <- (Sc_CO2/scO2)^(-0.5) * outputDF$gasTransVelO2[i] #Equation 1, Wanninkhof (1992) "little k"
-    outputDF$K600 <- outputDF$k600[i] / outputDF$meanDepth[i] # d^-1 "Big K"
+    outputDF$K600[i] <- outputDF$k600[i] / outputDF$meanDepth[i] # d^-1 "Big K"
 
   }
   outputList <- list("outputDF"=outputDF,"inputFile"=inputFile)

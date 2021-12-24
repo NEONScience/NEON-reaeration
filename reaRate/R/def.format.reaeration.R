@@ -158,6 +158,7 @@ def.format.reaeration <- function(
     'slugPourTime',
     'dripStartTime',
     'backgroundSaltConc',
+    'meanBackgoundCond',
     'plateauSaltConc',
     'meanPlatSaltConc',
     'plateauGasConc',
@@ -217,6 +218,16 @@ def.format.reaeration <- function(
       rea_externalLabDataSalt$namedLocation == station &
         rea_externalLabDataSalt$startDate == startDate &
         rea_externalLabDataSalt$sampleType == "background"], silent = T)
+    
+    #Fill in background conductivity data
+    try(outputDF$meanBackgoundCond[i] <- mean(rea_backgroundFieldSaltData$specificConductanceRep1[rea_backgroundFieldSaltData$namedLocation == station &
+                                                                                                   rea_backgroundFieldSaltData$collectDate == startDate],
+                                                  rea_backgroundFieldSaltData$specificConductanceRep2[rea_backgroundFieldSaltData$namedLocation == station &
+                                                                                                        rea_backgroundFieldSaltData$collectDate == startDate],
+                                                  rea_backgroundFieldSaltData$specificConductanceRep3[rea_backgroundFieldSaltData$namedLocation == station &
+                                                                                                        rea_backgroundFieldSaltData$collectDate == startDate],
+                                                  rea_backgroundFieldSaltData$specificConductanceRep4[rea_backgroundFieldSaltData$namedLocation == station &
+                                                                                                        rea_backgroundFieldSaltData$collectDate == startDate],na.rm = TRUE), silent = T)
 
     #Fill in plateau concentration data for constant rate injection
     # Need to join with the field data rather than use the sampleID since we're switching to barcodes only

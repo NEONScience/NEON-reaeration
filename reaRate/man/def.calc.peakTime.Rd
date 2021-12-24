@@ -4,17 +4,30 @@
 \alias{def.calc.peakTime}
 \title{Constant rate or slug travel time between two stations}
 \usage{
-def.calc.peakTime(loggerDataIn, currEventID, injectionType, expStartTime)
+def.calc.peakTime(
+  loggerDataIn,
+  currEventID,
+  injectionType,
+  expStartTime,
+  expBufferTime = 3900,
+  backgroundCond = NA
+)
 }
 \arguments{
 \item{loggerDataIn}{User input of the R data object holding the conductivity time series
 for a site, date, and station [dataframe]}
 
-\item{currEventID}{User input of the eventID of the tracer experiment [string]}
+\item{currEventID}{User input of the eventID of the tracer experiment [character]}
 
-\item{injectionType}{User input of the injection type either "constant" or "slug" [string]}
+\item{injectionType}{User input of the injection type either "constant" or "slug" [character]}
 
 \item{expStartTime}{User input of the experiment start time, in UTC timezone [posixct]}
+
+\item{expBufferTime}{User input of the amount of time (in seconds) before the startTime
+to show in plots, defaults to 600 seconds (10 minutes) [numeric]}
+
+\item{backgroundCond}{User inpute of the background conductivity for making plots
+look nicer [numeric]}
 }
 \value{
 This function returns the peak tracer timestamp [dateTime]
