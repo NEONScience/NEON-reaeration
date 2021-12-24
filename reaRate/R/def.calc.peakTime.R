@@ -272,7 +272,8 @@ def.calc.peakTime <- function(
                       "peakTime"=peakTime,
                       "centroidTime"=centroidTime,
                       "harmonicMeanTime"=harmonicMeanTime,
-                      "endPlotTime"=loggerDataTrim$dateTimeLogger[endHere])
+                      "startPlotTime"=loggerDataTrimIn$dateTimeLogger[beginHere],
+                      "endPlotTime"=loggerDataTrimIn$dateTimeLogger[endHere])
 
   return(peakInfoOut)
 }
