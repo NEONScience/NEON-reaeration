@@ -38,7 +38,7 @@ reaDPID <- "DP1.20190.001"
 dscDPID <- "DP1.20048.001"
 
 # Download Reaeration Data
-reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID, site = siteID, check.size = FALSE, startdate = "2020-01-01", enddate = "2020-06-01")
+reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID, site = siteID, check.size = FALSE) #, startdate = "2019-01-01", enddate = "2021-12-01"
 
 rea_backgroundFieldCondDataIn <- reaInputList$rea_backgroundFieldCondData
 rea_backgroundFieldSaltDataIn <- reaInputList$rea_backgroundFieldSaltData

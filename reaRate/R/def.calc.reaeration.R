@@ -232,6 +232,7 @@ def.calc.reaeration <- function(
 
       #Background correct salt samples, normalize gas concentration, and natural log transform the plateau gas concentrations
       backSalt <- inputFile$backgroundSaltConc[inputFile$eventID == currEventID]
+      backCond <- mean(inputFile$meanBackgoundCond[inputFile$eventID == currEventID], na.rm = TRUE)
       platSalt <- as.character(inputFile$plateauSaltConc[inputFile$eventID == currEventID])
       platGas <- as.character(inputFile$plateauGasConc[inputFile$eventID == currEventID])
       statDist <- inputFile$stationToInjectionDistance[inputFile$eventID == currEventID]
@@ -397,11 +398,13 @@ def.calc.reaeration <- function(
     s1peakLoc <- reaRate::def.calc.peakTime(loggerDataIn = condDataS1,
                                             currEventID = currEventID,
                                             injectionType = injectionType,
-                                            expStartTime = currExpStartTime) # index to get date and time of peak/plateau half max
+                                            expStartTime = currExpStartTime,
+                                            backgroundCond = backCond) # index to get date and time of peak/plateau half max
     s4peakLoc <- reaRate::def.calc.peakTime(loggerDataIn = condDataS4,
                                             currEventID = currEventID,
                                             injectionType = injectionType,
-                                            expStartTime = currExpStartTime) # index to get date and time of peak/plateau half max
+                                            expStartTime = currExpStartTime,
+                                            backgroundCond = backCond) # index to get date and time of peak/plateau half max
 
     #If either of the peakTimes are NULL move on to the next eventID
     if(is.null(s1peakLoc)){

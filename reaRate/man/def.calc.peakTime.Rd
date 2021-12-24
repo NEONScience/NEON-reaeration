@@ -9,7 +9,8 @@ def.calc.peakTime(
   currEventID,
   injectionType,
   expStartTime,
-  expBufferTime = 300
+  expBufferTime = 3900,
+  backgroundCond = NA
 )
 }
 \arguments{
@@ -23,7 +24,10 @@ for a site, date, and station [dataframe]}
 \item{expStartTime}{User input of the experiment start time, in UTC timezone [posixct]}
 
 \item{expBufferTime}{User input of the amount of time (in seconds) before the startTime
-to show in plots, defaults to 300 seconds (5 minutes) [numeric]}
+to show in plots, defaults to 600 seconds (10 minutes) [numeric]}
+
+\item{backgroundCond}{User inpute of the background conductivity for making plots
+look nicer [numeric]}
 }
 \value{
 This function returns the peak tracer timestamp [dateTime]
