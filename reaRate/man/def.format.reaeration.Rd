@@ -15,7 +15,8 @@ def.format.reaeration(
   rea_widthFieldData,
   dsc_fieldData = NULL,
   dsc_individualFieldData = NULL,
-  dsc_fieldDataADCP = NULL
+  dsc_fieldDataADCP = NULL,
+  waq_instantaneous = NULL
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ def.format.reaeration(
 \item{dsc_individualFieldData}{This dataframe contains the data for the NEON dsc_individualFieldData table, optional [dataframe]}
 
 \item{dsc_fieldDataADCP}{This dataframe contains the data for the NEON dsc_fieldDataADCP table, optional[dataframe]}
+
+\item{waq_instantaneous}{This dataframe contains the data for the NEON Water Quality sensor data, optional[dataframe]}
 }
 \value{
 This function returns one data frame formatted for use with def.calc.reaeration.R

@@ -24,6 +24,7 @@
 #' @param dsc_fieldData This dataframe contains the data for the NEON dsc_fieldData table, optional if there is a dsc_fieldDataADCP table [dataframe]
 #' @param dsc_individualFieldData This dataframe contains the data for the NEON dsc_individualFieldData table, optional [dataframe]
 #' @param dsc_fieldDataADCP This dataframe contains the data for the NEON dsc_fieldDataADCP table, optional[dataframe]
+#' @param waq_instantaneous This dataframe contains the data for the NEON Water Quality sensor data, optional[dataframe]
 
 #' @return This function returns one data frame formatted for use with def.calc.reaeration.R
 
@@ -52,6 +53,8 @@
 #     Updated to fix a few user bugs (may have been mac specific) and include model injection types
 #   Kaelin M. Cawley (2021-06-21)
 #     Update to fix a bug with merging model injections
+#   Kaelin M. Cawley (2022-02-11)
+#     Additional data cleaning and bug fix for https://github.com/NEONScience/NEON-reaeration/issues/9
 ##############################################################################################
 def.format.reaeration <- function(
   rea_backgroundFieldCondData,
@@ -64,7 +67,8 @@ def.format.reaeration <- function(
   rea_widthFieldData,
   dsc_fieldData = NULL,
   dsc_individualFieldData = NULL,
-  dsc_fieldDataADCP = NULL
+  dsc_fieldDataADCP = NULL,
+  waq_instantaneous = NULL
 ) {
 
   if(is.null(dsc_fieldData) & is.null(dsc_fieldDataADCP)){
@@ -77,8 +81,8 @@ def.format.reaeration <- function(
     # }
   }
 
-  #Hopefully I can comment this out in the future when we get a siteID column, but for now, I'll make one
-  dsc_fieldDataADCP$siteID <- dsc_fieldDataADCP$stationID
+  # #Hopefully I can comment this out in the future when we get a siteID column, but for now, I'll make one
+  # dsc_fieldDataADCP$siteID <- dsc_fieldDataADCP$stationID
 
   # Pull the timezone for the site(s) for making sure the eventIDs match depending on the time of day, need to convert to local time.
   allSites <- unique(rea_fieldData$siteID)
@@ -112,6 +116,9 @@ def.format.reaeration <- function(
   # Populate the saltBelowDetectionQF if it isn't there and remove any values with flags of 1
   rea_externalLabDataSalt$saltBelowDetectionQF[is.na(rea_externalLabDataSalt$saltBelowDetectionQF)] <- 0
   rea_externalLabDataSalt$finalConcentration[rea_externalLabDataSalt$saltBelowDetectionQF == 1] <- NA
+  
+  #Format the date for the sensor data so that it matches the REA data
+  waq_instantaneous$startDateTimeTrim <- format(waq_instantaneous$startDateTime, format = "%Y-%m-%d %H:%M")
 
   #Merge the rea_backgroundFieldSaltData, rea_backgroundFieldCondData, and rea_fieldData tables to handle the model injections
   if(!is.null(rea_backgroundFieldSaltData)){
@@ -122,7 +129,7 @@ def.format.reaeration <- function(
   }else{
     loggerSiteData <- merge(rea_backgroundFieldCondData,
                             rea_fieldData,
-                            by = c('siteID', 'collectDate'),
+                            by = c('siteID', 'collectDate', 'eventID'),
                             all = TRUE)
   }
 
@@ -141,7 +148,9 @@ def.format.reaeration <- function(
     loggerSiteData$eventID <- loggerSiteData$eventID.x
   }
 
+  
   #Add the injectate, background, or plateau type to external lab data
+  #This is probably going to have to change with the switch to using only barcodes!
   rea_externalLabDataSalt$sampleType <- NA
   rea_externalLabDataSalt$sampleType[rea_externalLabDataSalt$saltSampleID %in% rea_fieldData$injectateSampleID] <- "injectate"
   rea_externalLabDataSalt$sampleType[rea_externalLabDataSalt$saltSampleID %in% rea_backgroundFieldSaltData$saltBackgroundSampleID] <- "background"
@@ -152,17 +161,30 @@ def.format.reaeration <- function(
     'siteID',
     'namedLocation', #Station at this point
     'collectDate',
+    'collectDateTrim',
     'stationToInjectionDistance',
     'injectionType',
     'slugTracerMass',
     'slugPourTime',
     'dripStartTime',
+    'plateauCollectTime',
     'backgroundSaltConc',
     'meanBackgoundCond',
+    'backgroundSensorCond',
     'plateauSaltConc',
     'meanPlatSaltConc',
+    'sdPlatSaltConc',
+    'plateauSaltConcClean',
+    'meanPlatSaltConcClean',
+    'sdPlatSaltConcClean',
+    'platSensorCond',
     'plateauGasConc',
     'meanPlatGasConc',
+    'sdPlatGasConc',
+    'plateauGasConcClean',
+    'meanPlatGasConcClean',
+    'sdPlatGasConcClean',
+    'unmixedStationFlag',
     'wettedWidth',
     'waterTemp',
     'hoboSampleID',
@@ -201,6 +223,9 @@ def.format.reaeration <- function(
     try(outputDF$fieldDischarge[outputDF$eventID == i] <- currQ, silent = T)
   }
 
+  #Format the collect date for matching with sensor data
+  outputDF$collectDateTrim <- format(outputDF$collectDate, format = "%Y-%m-%d %H:%M")
+  
   #Loop through all the records to populate the other fields
   for(i in seq(along = outputDF$siteID)){
     siteID <- outputDF$siteID[i]
@@ -229,6 +254,27 @@ def.format.reaeration <- function(
                                                   rea_backgroundFieldSaltData$specificConductanceRep4[rea_backgroundFieldSaltData$namedLocation == station &
                                                                                                         rea_backgroundFieldSaltData$collectDate == startDate],na.rm = TRUE), silent = T)
 
+    #Populate sensor data for the background time (20 minutes prior to the injection start time)
+    backgroundDate <- ifelse(outputDF$injectionType[i] %in% c("NaCl","model - CRI"),format(outputDF$dripStartTime[i] - 20*60, format = "%Y-%m-%d %H:%M"),format(outputDF$slugPourTime[i] - 20*60, format = "%Y-%m-%d %H:%M"))
+    if(station == "GUIL.AOS.reaeration.station.01"){
+      try(outputDF$backgroundSensorCond[i] <- waq_instantaneous$specificConductance[waq_instantaneous$horizontalPosition == "101" & waq_instantaneous$startDateTimeTrim == backgroundDate], silent = TRUE)
+    }else if(station == "GUIL.AOS.reaeration.station.04"){
+      try(outputDF$backgroundSensorCond[i] <- waq_instantaneous$specificConductance[waq_instantaneous$horizontalPosition == "102" & waq_instantaneous$startDateTimeTrim == backgroundDate], silent = TRUE)
+    }
+    
+    #Fill in plateau sample collection time
+    try(outputDF$plateauCollectTime[i] <- unique(rea_plateauSampleFieldData$plateauCollectTime[
+      rea_plateauSampleFieldData$namedLocation == station &
+        rea_plateauSampleFieldData$startDate == startDate]), silent = T)
+    
+    #Populate sensor data for the sample collection time
+    platCollectDateTrim <- format(as.POSIXct(outputDF$plateauCollectTime[i], origin = "1970-01-01", tz = "GMT"), format = "%Y-%m-%d %H:%M")
+    if(station == "GUIL.AOS.reaeration.station.01"){
+      try(outputDF$platSensorCond[i] <- waq_instantaneous$specificConductance[(!is.na(waq_instantaneous$specificConductance)) & waq_instantaneous$horizontalPosition == "101" & waq_instantaneous$startDateTimeTrim == platCollectDateTrim], silent = TRUE)
+    }else if(station == "GUIL.AOS.reaeration.station.04"){
+      try(outputDF$platSensorCond[i] <- waq_instantaneous$specificConductance[(!is.na(waq_instantaneous$specificConductance)) & waq_instantaneous$horizontalPosition == "102" & waq_instantaneous$startDateTimeTrim == platCollectDateTrim], silent = TRUE)
+    }
+    
     #Fill in plateau concentration data for constant rate injection
     # Need to join with the field data rather than use the sampleID since we're switching to barcodes only
     pSaltConc <- rea_externalLabDataSalt$finalConcentration[
@@ -238,20 +284,86 @@ def.format.reaeration <- function(
 
     #Calculate a mean concentration for plateau salt
     outputDF$meanPlatSaltConc[i] <- mean(pSaltConc, na.rm = TRUE)
-
+    outputDF$sdPlatSaltConc[i] <- stats::sd(pSaltConc, na.rm = TRUE)
+    
     #Concatenate all values for plotting and assessment
     outputDF$plateauSaltConc[i] <- paste(pSaltConc, collapse = "|")
+    
+    #Remove outliers from plateau salt
+    validQ <- TRUE
 
+    if(all(pSaltConc == 0)){
+      cat("\t",outputDF$eventID[i],"contains all 0 values for salt data and cannot run outlier detection.\n")
+      validQ <- FALSE
+    }
+    if(length(pSaltConc) < 3){
+      cat("\t",outputDF$eventID[i],"contains fewer than 3 replicates for salt data and cannot run outlier detection.\n")
+      validQ <- FALSE
+    }
+    if(validQ){
+      platSaltTest <- graphics::boxplot(pSaltConc, plot = FALSE)
+      if(length(platSaltTest$out) > 0){
+        outputDF$plateauSaltConcClean[i] <- paste(pSaltConc[!(pSaltConc %in% platSaltTest$out)], collapse = "|")
+        outputDF$meanPlatSaltConcClean[i] <- mean(pSaltConc[!(pSaltConc %in% platSaltTest$out)], na.rm = TRUE)
+        outputDF$sdPlatSaltConcClean[i] <- stats::sd(pSaltConc[!(pSaltConc %in% platSaltTest$out)], na.rm = TRUE)
+      }else{
+        outputDF$plateauSaltConcClean[i] <- outputDF$plateauSaltConc[i]
+        outputDF$meanPlatSaltConcClean[i] <- outputDF$meanPlatSaltConc[i]
+        outputDF$sdPlatSaltConcClean[i] <- outputDF$sdPlatSaltConc[i]
+      }
+    }
+    
+    #Flag salt data for unmixed situations
+    platSaltCV <- outputDF$sdPlatSaltConcClean[i]/outputDF$meanPlatSaltConcClean[i]
+    if(!is.na(platSaltCV) && platSaltCV > 0.1){
+      outputDF$unmixedStationFlag[i] <- "unmixedSaltStation"
+    }
+    
     #Fill in plateau gas concentration
     pGasConc <- rea_externalLabDataGas$gasTracerConcentration[
       rea_externalLabDataGas$namedLocation == station &
         rea_externalLabDataGas$startDate == startDate]
 
-    #Calculate a mean concentration for plateau salt
+    #Calculate a mean concentration for plateau gas
     outputDF$meanPlatGasConc[i] <- mean(pGasConc, na.rm = TRUE)
-
+    outputDF$sdPlatGasConc[i] <- stats::sd(pGasConc, na.rm = TRUE)
+    
     #Concatenate all values for plotting and assessment
     outputDF$plateauGasConc[i] <- paste(pGasConc, collapse = "|")
+    
+    #Remove outliers from plateau gas
+    validQ <- TRUE
+    
+    if(all(pGasConc == 0)){
+      cat("\t",outputDF$eventID[i],"contains all 0 values for gas data and cannot run outlier detection.\n")
+      validQ <- FALSE
+    }
+    if(length(pGasConc) < 3){
+      cat("\t",outputDF$eventID[i],"contains fewer than 3 replicates for gas data and cannot run outlier detection.\n")
+      validQ <- FALSE
+    }
+    if(validQ){
+      platGasTest <- graphics::boxplot(pGasConc, plot = FALSE)
+      if(length(platGasTest$out) > 0){
+        outputDF$plateauGasConcClean[i] <- paste(pGasConc[!(pGasConc %in% platGasTest$out)], collapse = "|")
+        outputDF$meanPlatGasConcClean[i] <- mean(pGasConc[!(pGasConc %in% platGasTest$out)], na.rm = TRUE)
+        outputDF$sdPlatGasConcClean[i] <- stats::sd(pGasConc[!(pGasConc %in% platGasTest$out)], na.rm = TRUE)
+      }else{
+        outputDF$plateauGasConcClean[i] <- outputDF$plateauGasConc[i]
+        outputDF$meanPlatGasConcClean[i] <- outputDF$meanPlatGasConc[i]
+        outputDF$sdPlatGasConcClean[i] <- outputDF$sdPlatGasConc[i]
+      }
+    }
+    
+    #Flag salt data for unmixed situations
+    platGasCV <- outputDF$sdPlatGasConcClean[i]/outputDF$meanPlatGasConcClean[i]
+    if(!is.na(platGasCV) && platGasCV > 0.1){
+      if(is.na(outputDF$unmixedStationFlag[i])){
+        outputDF$unmixedStationFlag[i] <- "unmixedGasStation"
+      }else{
+        outputDF$unmixedStationFlag[i] <- "unmixedSaltStation|unmixedGasStation"
+      }
+    }
 
     #Fill in mean wetted width
     wettedWidthVals <- rea_widthFieldData$wettedWidth[

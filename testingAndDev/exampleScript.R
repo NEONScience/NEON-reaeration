@@ -36,6 +36,7 @@ siteID <- "GUIL"
 #String constants
 reaDPID <- "DP1.20190.001"
 dscDPID <- "DP1.20048.001"
+wqDPID <- "DP1.20288.001"
 
 # Download Reaeration Data
 reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID, site = siteID, check.size = FALSE) #, startdate = "2019-01-01", enddate = "2021-12-01"
@@ -56,6 +57,12 @@ dsc_fieldDataIn <- qInputList$dsc_fieldData
 dsc_individualFieldDataIn <- qInputList$dsc_individualFieldData
 dsc_fieldDataADCPIn <- qInputList$dsc_fieldDataADCP
 
+# Download Sensor Data
+sensorData <- neonUtilities::loadByProduct(dpID = wqDPID, 
+                                           site = siteID,
+                                           check.size = FALSE)
+waq_instantaneousIn <- sensorData$waq_instantaneous
+
 rea_backgroundFieldCondData <- rea_backgroundFieldCondDataIn
 rea_backgroundFieldSaltData <- rea_backgroundFieldSaltDataIn
 rea_fieldData <- rea_fieldDataIn
@@ -67,6 +74,7 @@ rea_widthFieldData <- rea_widthFieldDataIn
 dsc_fieldData <- dsc_fieldDataIn
 dsc_individualFieldData <- dsc_individualFieldDataIn
 dsc_fieldDataADCP <- dsc_fieldDataADCPIn
+waq_instantaneous <- waq_instantaneousIn
 
 reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn,
                                       rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
@@ -78,7 +86,8 @@ reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea
                                       rea_widthFieldData = rea_widthFieldDataIn,
                                       dsc_fieldData = dsc_fieldDataIn,
                                       dsc_individualFieldData = dsc_individualFieldDataIn,
-                                      dsc_fieldDataADCP = dsc_fieldDataADCPIn)
+                                      dsc_fieldDataADCP = dsc_fieldDataADCPIn,
+                                      waq_instantaneous = waq_instantaneousIn)
 
 inputFile = reaFormatted
 injectionTypeName = "injectionType"
@@ -86,7 +95,7 @@ eventID = "eventID"
 stationToInjectionDistance = "stationToInjectionDistance"
 plateauGasConc = "plateauGasConc"
 corrPlatSaltConc = "corrPlatSaltConc"
-savePlotPath = "C:/Users/kcawley/Desktop/reaTesting"
+savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211"
 
 plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
                                         injectionTypeName = "injectionType",
@@ -94,7 +103,7 @@ plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
                                         stationToInjectionDistance = "stationToInjectionDistance",
                                         plateauGasConc = "plateauGasConc",
                                         corrPlatSaltConc = "corrPlatSaltConc",
-                                        savePlotPath = "C:/Users/kcawley/Desktop/reaTesting")
+                                        savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211")
 
 inputFile = reaFormatted
 loggerData = reaInputList$rea_conductivityFieldData
