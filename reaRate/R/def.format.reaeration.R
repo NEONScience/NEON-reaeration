@@ -292,11 +292,11 @@ def.format.reaeration <- function(
     #Remove outliers from plateau salt
     validQ <- TRUE
 
-    if(all(pSaltConc == 0)){
-      cat("\t",outputDF$eventID[i],"contains all 0 values for salt data and cannot run outlier detection.\n")
+    if(all(pSaltConc == 0)|all(is.na(pSaltConc))){
+      cat("\t",outputDF$eventID[i],"contains all 0 or NA values for salt data and cannot run outlier detection.\n")
       validQ <- FALSE
     }
-    if(length(pSaltConc) < 3){
+    if(length(pSaltConc) < 3 & validQ){
       cat("\t",outputDF$eventID[i],"contains fewer than 3 replicates for salt data and cannot run outlier detection.\n")
       validQ <- FALSE
     }
@@ -334,11 +334,11 @@ def.format.reaeration <- function(
     #Remove outliers from plateau gas
     validQ <- TRUE
     
-    if(all(pGasConc == 0)){
-      cat("\t",outputDF$eventID[i],"contains all 0 values for gas data and cannot run outlier detection.\n")
+    if(all(pGasConc == 0)|all(is.na(pGasConc))){
+      cat("\t",outputDF$eventID[i],"contains all 0 or NA values for gas data and cannot run outlier detection.\n")
       validQ <- FALSE
     }
-    if(length(pGasConc) < 3){
+    if(length(pGasConc) < 3 & validQ){
       cat("\t",outputDF$eventID[i],"contains fewer than 3 replicates for gas data and cannot run outlier detection.\n")
       validQ <- FALSE
     }

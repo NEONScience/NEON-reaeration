@@ -27,7 +27,8 @@
 ##############################################################################################
 
 #User Inputs
-siteID <- "GUIL"
+siteID <- "CARI"
+#Take a look at REDB next to see if data looks compromised from broken diffuser
 #siteID <- "CARI" #Not an ADCP site (yet!), NaBr injection
 #siteID <- "MAYF" #ADCP site for testing
 #siteID <- "WALK" #When station 2 is used instead of station 1
