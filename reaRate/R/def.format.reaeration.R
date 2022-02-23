@@ -220,6 +220,10 @@ def.format.reaeration <- function(
   for(i in unique(outputDF$eventID)){
     #print(i)
     currQ <- dsc_fieldDataADCP$totalDischarge[dsc_fieldDataADCP$eventID == i]
+    currQUnits <- dsc_fieldDataADCP$totalDischargeUnits[dsc_fieldDataADCP$eventID == i]
+    if(currQUnits == "cubicMetersPerSecond"){
+      currQ <- currQ * 1000
+    }
     try(outputDF$fieldDischarge[outputDF$eventID == i] <- currQ, silent = T)
   }
 
