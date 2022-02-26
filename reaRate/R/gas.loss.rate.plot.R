@@ -227,7 +227,7 @@ gas.loss.rate.plot <- function(
            backSaltY,
            xlab = "Distance from Injection (m)",
            ylab = "Background Salt Concentration (ppm)",
-           main = paste0(currEventID, " (", currQ, " lps)"),
+           main = paste0(currEventID, " (", round(currQ, digits = 0), " lps)"),
            ylim = saltRange,
            pch = 19,
            col = c("magenta"))
@@ -335,7 +335,7 @@ gas.loss.rate.plot <- function(
            xlab = "Distance from Injection (m)",
            ylab = "Gas Concentration log(ppmv)",
            ylim = gasRange,
-           main = paste0(currEventID, " (", currQ, " lps)"),
+           main = paste0(currEventID, " (", round(currQ, digits = 0), " lps)"),
            pch = 4,
            col = "red")
       par(new = TRUE)
@@ -349,16 +349,16 @@ gas.loss.rate.plot <- function(
            pch = 19)
       axis(side = 4, at = pretty(gasRange))
       mtext("Salt Corrected Gas log(ppmv/ppm)", side = 4, line = 3)
-      points(platGasXforYClean, logPlatGasYClean, col = "purple", pch = 18)
+      points(platGasXforYClean, logPlatGasYClean, col = gasColClean, pch = 18)
       points(platGasXforBackSaltCorrY, logPlatGasBackSaltCorrY, col = "orange", pch = 1)
       
-      try(rawLineFit <- lsfit(platGasX,logPlatGasY), silent = T)
+      try(rawLineFit <- lsfit(platGasXforY,logPlatGasY), silent = T)
       rawSlope <- rawLineFit$coefficients[["X"]]
-      try(cleanLineFit <- lsfit(platGasXClean,logPlatGasYClean), silent = T)
+      try(cleanLineFit <- lsfit(platGasXforYClean,logPlatGasYClean), silent = T)
       cleanSlope <- cleanLineFit$coefficients[["X"]]
-      try(corrLineFit <- lsfit(platGasXClean,logPlatGasSaltCorrY), silent = T)
+      try(corrLineFit <- lsfit(platGasXforSaltCorrY,logPlatGasSaltCorrY), silent = T)
       corrSlope <- corrLineFit$coefficients[["X"]]
-      try(backLineFit <- lsfit(platGasXClean,logPlatGasBackSaltCorrY), silent = T)
+      try(backLineFit <- lsfit(platGasXforBackSaltCorrY,logPlatGasBackSaltCorrY), silent = T)
       backSlope <- backLineFit$coefficients[["X"]]
       
       abline(a = rawLineFit$coefficients[["Intercept"]], b = rawLineFit$coefficients[["X"]], col = "red")
@@ -371,12 +371,13 @@ gas.loss.rate.plot <- function(
                        inset = c(-0.45,-0.2),
                        xpd = TRUE,
                        legend = c(paste0("Raw Gas ", signif(rawLineFit$coefficients[["X"]], 3)),
-                                  paste0("Clean gas ", signif(corrLineFit$coefficients[["X"]], 3)),
+                                  paste0("Clean gas - Mixed ", signif(corrLineFit$coefficients[["X"]], 3)),
+                                  paste0("Clean gas - Unmixed ", signif(corrLineFit$coefficients[["X"]], 3)),
                                   paste0("Plateau Corrected ", signif(corrLineFit$coefficients[["X"]], 3)),
                                   paste0("Background Corrected ", signif(backLineFit$coefficients[["X"]], 3))),
-                       col = c("red","purple","cyan","orange"),
-                       pch = c(4,19,18,1),
-                       cex = c(0.9,0.9,0.9,0.9))
+                       col = c("red","purple","purple4","cyan","orange"),
+                       pch = c(4,19,19,18,1),
+                       cex = c(0.9,0.9,0.9,0.9,0.9))
       dev.off()
     }
 

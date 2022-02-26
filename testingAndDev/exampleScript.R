@@ -27,7 +27,7 @@
 ##############################################################################################
 
 #User Inputs
-siteID <- "CARI"
+siteID <- "GUIL"
 #Take a look at REDB next to see if data looks compromised from broken diffuser
 #siteID <- "CARI" #Not an ADCP site (yet!), NaBr injection
 #siteID <- "MAYF" #ADCP site for testing
@@ -105,6 +105,11 @@ plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
                                         plateauGasConc = "plateauGasConc",
                                         corrPlatSaltConc = "corrPlatSaltConc",
                                         savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211")
+
+# Designed to plot background salt concentrations over time and flow
+backSaltPlot <- reaRate::bkgd.salt.cond.plot(inputFile = plotsOut,
+                                        savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211")
+
 
 inputFile = reaFormatted
 loggerData = reaInputList$rea_conductivityFieldData
