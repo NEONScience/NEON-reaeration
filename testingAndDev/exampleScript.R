@@ -107,7 +107,7 @@ plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
                                         savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211")
 
 # Designed to plot background salt concentrations over time and flow
-backSaltPlot <- reaRate::bkgd.salt.cond.plot(inputFile = plotsOut,
+backSaltPlot <- reaRate::bkgd.salt.conc.plot(inputFile = plotsOut,
                                         savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211")
 
 

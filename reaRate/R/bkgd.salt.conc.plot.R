@@ -137,8 +137,8 @@ bkgd.salt.conc.plot <- function(
   }
   plot(inputFile$backgroundSaltConc, 
        inputFile$backgroundSensorCond,
-       xlab = "Sensor Specific Conductance (uS/cm at 25 C)",
-       ylab = "Background Salt Concentration (ppm)",
+       ylab = "Sensor Specific Conductance (uS/cm at 25 C)",
+       xlab = "Background Salt Concentration (ppm)",
        main = "Sensor versus grab sample background concentrations",
        col = "blue")
   try(sensorFit <- lsfit(inputFile$backgroundSaltConc, 
