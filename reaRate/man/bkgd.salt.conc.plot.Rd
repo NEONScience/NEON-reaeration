@@ -7,18 +7,15 @@
 bkgd.salt.conc.plot(inputFile = NULL, savePlotPath = NULL)
 }
 \arguments{
-\item{inputFile}{Name of the data frame containing the information needed to calculate the
-reaeration parameters. If the headers are named: "injectionType", "eventID",
-"stationToInjectionDistance", "plateauGasConc", "corrPlatSaltConc", "hoboSampleID",
-"wettedWidth", respectively, no other inputs are required. Otherwise, the names of the
-columns need to be input for the function to work. [string]}
+\item{inputFile}{Name of the data frame containing the information needed to plot background 
+salt information for QAQC. [string]}
 
 \item{savePlotPath}{If a user specifies a path the plots will be saved to this location [string]}
 }
 \value{
-This function returns a list of two dataframes, the input dataframe of data for up to
-4 stations per site per date and an output dataframe appended with loss rate, travel time,
-SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600 for a given site and date
+This function makes three plots, background salt concentrations color coded for 
+date and discharge and a plot of sensor specific conductance 20 minutes before the 
+injection time versus grab sample concentration.
 }
 \description{
 This function calculates loss rate, travel time, SF6 reaeration rate, O2

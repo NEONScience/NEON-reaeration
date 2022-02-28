@@ -189,6 +189,7 @@ def.format.reaeration <- function(
     'waterTemp',
     'hoboSampleID',
     'fieldDischarge',
+    'stage',
     'eventID'
   )
   outputDF <- data.frame(matrix(data=NA, ncol=length(outputDFNames), nrow=length(loggerSiteData$siteID)))
@@ -209,14 +210,17 @@ def.format.reaeration <- function(
   dsc_fieldData_calc <- stageQCurve::conv.calc.Q(stageData = dsc_fieldData,
                                                  dischargeData = dsc_individualFieldData)
 
-  #Populate Q from wading surveys
+  #Populate Q and stage from wading surveys
   for(i in unique(outputDF$eventID)){
     #print(i)
     currQ <- dsc_fieldData_calc$calcQ[dsc_fieldData_calc$eventID == i]
     try(outputDF$fieldDischarge[outputDF$eventID == i] <- currQ, silent = T)
+    
+    currStage <- dsc_fieldData_calc$streamStage[dsc_fieldData_calc$eventID == i]
+    try(outputDF$stage[outputDF$eventID == i] <- currStage, silent = T)
   }
 
-  #Populate Q from ADCP data, if applicable
+  #Populate Q and stage from ADCP data, if applicable
   for(i in unique(outputDF$eventID)){
     #print(i)
     currQ <- dsc_fieldDataADCP$totalDischarge[dsc_fieldDataADCP$eventID == i]
@@ -225,6 +229,9 @@ def.format.reaeration <- function(
       currQ <- currQ * 1000
     }
     try(outputDF$fieldDischarge[outputDF$eventID == i] <- currQ, silent = T)
+    
+    currStage <- dsc_fieldDataADCP$streamStage[dsc_fieldDataADCP$eventID == i]
+    try(outputDF$stage[outputDF$eventID == i] <- currStage, silent = T)
   }
 
   #Format the collect date for matching with sensor data
