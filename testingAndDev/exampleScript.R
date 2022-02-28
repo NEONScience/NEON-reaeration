@@ -127,14 +127,14 @@ plot = TRUE
 savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/"
 processingInfo = NULL
 
-reaRatesCalc <- reaRate::def.calc.reaeration(inputFile = reaFormatted,
+reaRatesCalc <- reaRate::def.calc.reaeration(inputFile = plotsOut,
                                              loggerData = reaInputList$rea_conductivityFieldData,
                                              namedLocation = "namedLocation",
                                              injectionTypeName = "injectionType",
                                              eventID = "eventID",
                                              stationToInjectionDistance = "stationToInjectionDistance",
-                                             plateauGasConc = "plateauGasConc",
-                                             corrPlatSaltConc = "corrPlatSaltConc",
+                                             plateauGasConc = "plateauGasConcClean",
+                                             corrPlatSaltConc = "plateauSaltConcClean",
                                              hoboSampleID = "hoboSampleID",
                                              discharge = "fieldDischarge",
                                              waterTemp = "waterTemp",

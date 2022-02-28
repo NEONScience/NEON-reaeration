@@ -177,6 +177,9 @@ def.format.reaeration <- function(
     'plateauSaltConcClean',
     'meanPlatSaltConcClean',
     'sdPlatSaltConcClean',
+    'plateauSaltConcCleanCorr',
+    'meanPlatSaltConcCleanCorr',
+    'sdPlatSaltConcCleanCorr',
     'platSensorCond',
     'plateauGasConc',
     'meanPlatGasConc',
@@ -323,6 +326,11 @@ def.format.reaeration <- function(
         outputDF$sdPlatSaltConcClean[i] <- outputDF$sdPlatSaltConc[i]
       }
     }
+    
+    #Background correct salt data
+    try(outputDF$plateauSaltConcCleanCorr[i] <- paste((pSaltConc[!(pSaltConc %in% platSaltTest$out)] / outputDF$backgroundSaltConc[i]), collapse = "|"))
+    try(outputDF$meanPlatSaltConcCleanCorr[i] <- mean((pSaltConc[!(pSaltConc %in% platSaltTest$out)] / outputDF$backgroundSaltConc[i]), na.rm = TRUE))
+    try(outputDF$sdPlatSaltConcCleanCorr[i] <- stats::sd((pSaltConc[!(pSaltConc %in% platSaltTest$out)] / outputDF$backgroundSaltConc[i]), na.rm = TRUE))
     
     #Flag salt data for unmixed situations
     platSaltCV <- outputDF$sdPlatSaltConcClean[i]/outputDF$meanPlatSaltConcClean[i]
