@@ -12,7 +12,7 @@ def.calc.reaeration(
   eventID = "eventID",
   stationToInjectionDistance = "stationToInjectionDistance",
   plateauGasConc = "plateauGasConc",
-  corrPlatSaltConc = "corrPlatSaltConc",
+  corrPlatSaltConc = NULL,
   hoboSampleID = "hoboSampleID",
   discharge = "fieldDischarge",
   waterTemp = "waterTemp",

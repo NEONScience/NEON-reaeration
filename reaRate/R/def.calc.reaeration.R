@@ -88,7 +88,7 @@ def.calc.reaeration <- function(
   eventID = "eventID",
   stationToInjectionDistance = "stationToInjectionDistance",
   plateauGasConc = "plateauGasConc",
-  corrPlatSaltConc = "corrPlatSaltConc",
+  corrPlatSaltConc = NULL,
   hoboSampleID = "hoboSampleID",
   discharge = "fieldDischarge",
   waterTemp = "waterTemp",
@@ -107,7 +107,12 @@ def.calc.reaeration <- function(
   eventIDIdx <- which(names(inputFile) == eventID)
   staDistIdx <- which(names(inputFile) == stationToInjectionDistance)
   plGasIdx <- which(names(inputFile) == plateauGasConc)
-  plSaltIdx <- which(names(inputFile) == corrPlatSaltConc)
+  if(is.null(corrPlatSaltConc)){
+    applySaltCorr <- FALSE
+  }else{
+    plSaltIdx <- which(names(inputFile) == corrPlatSaltConc)
+    applySaltCorr <- TRUE
+  }
   loggerIdx <- which(names(inputFile) == hoboSampleID)
   QIdx <- which(names(inputFile) == discharge)
   watTempIdx <- which(names(inputFile) == waterTemp)
@@ -230,12 +235,13 @@ def.calc.reaeration <- function(
 
     if(!modelInjType){
 
+      #Background corrections now take place in the formatting code and users decide whether or not to use it as part of the inputs to this script
       #Background correct salt samples, normalize gas concentration, and natural log transform the plateau gas concentrations
       backSalt <- inputFile$backgroundSaltConc[inputFile$eventID == currEventID]
       backCond <- mean(inputFile$meanBackgoundCond[inputFile$eventID == currEventID], na.rm = TRUE)
-      platSalt <- as.character(inputFile$plateauSaltConc[inputFile$eventID == currEventID])
-      platGas <- as.character(inputFile$plateauGasConc[inputFile$eventID == currEventID])
-      statDist <- inputFile$stationToInjectionDistance[inputFile$eventID == currEventID]
+      platSalt <- as.character(inputFile[inputFile$eventID == currEventID, plSaltIdx])
+      platGas <- as.character(inputFile[inputFile$eventID == currEventID, plGasIdx])
+      statDist <- inputFile[inputFile$eventID == currEventID, staDistIdx]
 
       #If the background values are below detection, just use 0
       if(any(is.na(backSalt))){
@@ -252,37 +258,44 @@ def.calc.reaeration <- function(
         currPlatSalt <- as.numeric(strsplit(platSalt[j],"\\|")[[1]])
         currPlatGas <- as.numeric(strsplit(platGas[j],"\\|")[[1]])
 
-        #Background correct plateau salt concentrations
-        corrPlatSalt <- NA
-        if(length(currPlatSalt)>0 && length(currBack)>0){
-          corrPlatSalt <- currPlatSalt-currBack
-        }
+        # #Background correct plateau salt concentrations
+        # corrPlatSalt <- NA
+        # if(length(currPlatSalt)>0 && length(currBack)>0){
+        #   corrPlatSalt <- currPlatSalt-currBack
+        # }
 
         #Normalize plateau gas concentration to corrected plateau salt concentration
-        normPlatGas <- NA
-        if(length(currPlatGas)>0 && length(corrPlatSalt)>0 && any(!is.na(currPlatGas)) && any(!is.na(corrPlatSalt)) && length(currPlatGas)==length(corrPlatSalt)){
-          normPlatGas <- currPlatGas/corrPlatSalt
+        if(applySaltCorr){
+          normPlatGas <- NA
+          if(length(currPlatGas)>0 && length(currPlatSalt)>0 && any(!is.na(currPlatGas)) && any(!is.na(currPlatSalt)) && length(currPlatGas)==length(currPlatSalt)){
+            normPlatGas <- currPlatGas/currPlatSalt
+          }else{
+            stop(paste0("Error in plat gas and plateau salt record counts for: ",currEventID))
+          }
+        }else{
+          normPlatGas <- currPlatGas
         }
+        
 
         if(length(currPlatSalt)<1 || length(currBack)<1 || length(currPlatGas)<1 || all(is.na(currPlatGas)) || all(is.na(currPlatGas))){
           print(paste0("Tracer data for station ",j,", eventID ",currEventID," not available."))
           next
         }
 
-        if(min(normPlatGas, na.rm = T) <= 0 | min(corrPlatSalt, na.rm = T) <= 0){
+        if(min(normPlatGas, na.rm = T) <= 0 | min(currPlatSalt, na.rm = T) <= 0){
           print("A gas concentration or background corrected salt concentration is zero or negative producing NaNs for LNgasNormalizedToSalt")
         }
 
         normPlatGas[normPlatGas <= 0] <- NA
-        corrPlatSalt[corrPlatSalt <= 0] <- NA
+        currPlatSalt[currPlatSalt <= 0] <- NA
 
         logNormPlatGas <- try(log(normPlatGas))
 
-        numVals <- min(length(corrPlatSalt),length(normPlatGas))
+        numVals <- min(length(currPlatSalt),length(normPlatGas))
 
         x[(1+currStart):(numVals+currStart)] <- statDist[j]
         y[(1+currStart):(numVals+currStart)] <- logNormPlatGas
-        meanY[j] <- log(mean(currPlatGas, na.rm = T)/mean(corrPlatSalt, na.rm = T))
+        meanY[j] <- log(mean(currPlatGas, na.rm = T)/mean(currPlatSalt, na.rm = T))
       }
 
       #Calculate the Loss Rate, slope of the salt corrected SF6 over the reach

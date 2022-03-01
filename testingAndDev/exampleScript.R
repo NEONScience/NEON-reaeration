@@ -78,17 +78,17 @@ dsc_fieldDataADCP <- dsc_fieldDataADCPIn
 waq_instantaneous <- waq_instantaneousIn
 
 reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn,
-                                      rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
-                                      rea_fieldData = rea_fieldDataIn,
-                                      rea_plateauMeasurementFieldData = rea_plateauMeasurementFieldDataIn,
-                                      rea_plateauSampleFieldData = rea_plateauSampleFieldDataIn,
-                                      rea_externalLabDataSalt = rea_externalLabDataSaltIn,
-                                      rea_externalLabDataGas = rea_externalLabDataGasIn,
-                                      rea_widthFieldData = rea_widthFieldDataIn,
-                                      dsc_fieldData = dsc_fieldDataIn,
-                                      dsc_individualFieldData = dsc_individualFieldDataIn,
-                                      dsc_fieldDataADCP = dsc_fieldDataADCPIn,
-                                      waq_instantaneous = waq_instantaneousIn)
+                                               rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
+                                               rea_fieldData = rea_fieldDataIn,
+                                               rea_plateauMeasurementFieldData = rea_plateauMeasurementFieldDataIn,
+                                               rea_plateauSampleFieldData = rea_plateauSampleFieldDataIn,
+                                               rea_externalLabDataSalt = rea_externalLabDataSaltIn,
+                                               rea_externalLabDataGas = rea_externalLabDataGasIn,
+                                               rea_widthFieldData = rea_widthFieldDataIn,
+                                               dsc_fieldData = dsc_fieldDataIn,
+                                               dsc_individualFieldData = dsc_individualFieldDataIn,
+                                               dsc_fieldDataADCP = dsc_fieldDataADCPIn,
+                                               waq_instantaneous = waq_instantaneousIn)
 
 inputFile = reaFormatted
 injectionTypeName = "injectionType"
@@ -108,17 +108,17 @@ plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
 
 # Designed to plot background salt concentrations over time and flow
 backSaltPlot <- reaRate::bkgd.salt.conc.plot(inputFile = plotsOut,
-                                        savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211")
+                                             savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211")
 
 
-inputFile = reaFormatted
+inputFile = plotsOut
 loggerData = reaInputList$rea_conductivityFieldData
 namedLocation = "namedLocation"
 injectionTypeName = "injectionType"
 eventID = "eventID"
 stationToInjectionDistance = "stationToInjectionDistance"
-plateauGasConc = "plateauGasConc"
-corrPlatSaltConc = "corrPlatSaltConc"
+plateauGasConc = "plateauGasConcClean"
+corrPlatSaltConc = "plateauSaltConcClean"
 hoboSampleID = "hoboSampleID"
 discharge = "fieldDischarge"
 waterTemp = "waterTemp"
