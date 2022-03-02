@@ -270,7 +270,7 @@ def.calc.reaeration <- function(
           if(length(currPlatGas)>0 && length(currPlatSalt)>0 && any(!is.na(currPlatGas)) && any(!is.na(currPlatSalt)) && length(currPlatGas)==length(currPlatSalt)){
             normPlatGas <- currPlatGas/currPlatSalt
           }else{
-            stop(paste0("Error in plat gas and plateau salt record counts for: ",currEventID))
+            print(paste0("Error in plat gas and plateau salt record counts for: ",currEventID))
           }
         }else{
           normPlatGas <- currPlatGas
