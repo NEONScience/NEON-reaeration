@@ -3,6 +3,7 @@
 export(bkgd.salt.conc.plot)
 export(def.calc.peakTime)
 export(def.calc.reaeration)
+export(def.calc.trvl.time)
 export(def.format.reaeration)
 export(gas.loss.rate.plot)
 importFrom(geoNEON,getLocBySite)

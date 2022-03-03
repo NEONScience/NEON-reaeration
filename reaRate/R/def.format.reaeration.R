@@ -169,7 +169,7 @@ def.format.reaeration <- function(
     'dripStartTime',
     'plateauCollectTime',
     'backgroundSaltConc',
-    'meanBackgoundCond',
+    'meanBackgroundCond',
     'backgroundSensorCond',
     'plateauSaltConc',
     'meanPlatSaltConc',
@@ -259,7 +259,7 @@ def.format.reaeration <- function(
         rea_externalLabDataSalt$sampleType == "background"], silent = T)
     
     #Fill in background conductivity data
-    try(outputDF$meanBackgoundCond[i] <- mean(rea_backgroundFieldSaltData$specificConductanceRep1[rea_backgroundFieldSaltData$namedLocation == station &
+    try(outputDF$meanBackgroundCond[i] <- mean(rea_backgroundFieldSaltData$specificConductanceRep1[rea_backgroundFieldSaltData$namedLocation == station &
                                                                                                     rea_backgroundFieldSaltData$collectDate == startDate],
                                               rea_backgroundFieldSaltData$specificConductanceRep2[rea_backgroundFieldSaltData$namedLocation == station &
                                                                                                     rea_backgroundFieldSaltData$collectDate == startDate],

@@ -6,20 +6,11 @@
 \usage{
 def.calc.reaeration(
   inputFile = NULL,
-  loggerData = NULL,
-  namedLocation = "namedLocation",
-  injectionTypeName = "injectionType",
-  eventID = "eventID",
-  stationToInjectionDistance = "stationToInjectionDistance",
-  plateauGasConc = "plateauGasConc",
-  corrPlatSaltConc = NULL,
-  hoboSampleID = "hoboSampleID",
-  discharge = "fieldDischarge",
-  waterTemp = "waterTemp",
-  wettedWidth = "wettedWidth",
-  plot = TRUE,
-  savePlotPath = NULL,
-  processingInfo = NULL
+  lossRateSF6 = "lossRateSF6",
+  peakMaxVelocity = "peakMaxVelocity",
+  meanDepth = "meanDepth",
+  meanTemp = "meanTemp",
+  outputSuffix = NULL
 )
 }
 \arguments{
@@ -29,43 +20,20 @@ reaeration parameters. If the headers are named: "injectionType", "eventID",
 "wettedWidth", respectively, no other inputs are required. Otherwise, the names of the
 columns need to be input for the function to work. [string]}
 
-\item{loggerData}{User identified filename of logger data [string]}
+\item{lossRateSF6}{Dataframe column name for SF6 loss rate [string]}
 
-\item{namedLocation}{A string identifier for the station where data was collected [string]}
+\item{peakMaxVelocity}{Dataframe column name for stream velocity calculated with peak 
+max method [string]}
 
-\item{injectionTypeName}{Either constant rate or slug [string]}
+\item{meanDepth}{Dataframe column name for mean depth [string]}
 
-\item{eventID}{A string identifier to link records collected as part of the same experiment,
-SITE.YYYYMMDD for NEON [string]}
+\item{meanTemp}{Dataframe column name for mean temperature [string]}
 
-\item{stationToInjectionDistance}{Dataframe column name for distance from station to
-injection [string]}
-
-\item{plateauGasConc}{Dataframe column name for natural log of gas concentration normalized to
-background corrected salt concentration [string]}
-
-\item{corrPlatSaltConc}{Dataframe column name for natural log of gas concentration normalized to
-background corrected salt concentration [string]}
-
-\item{hoboSampleID}{Dataframe column name for ID to link to conductivity timeseries data [string]}
-
-\item{discharge}{Dataframe column name for stream discharge in literPerSecond [string]}
-
-\item{waterTemp}{Dataframe column name for mean water temperature data [string]}
-
-\item{wettedWidth}{Dataframe column name for mean wetted width for the stream reach [string]}
-
-\item{plot}{User input to plot the SF6/corrected salt concentration versus distance downstream,
-defaults to TRUE [boolean]}
-
-\item{savePlotPath}{If a user specifies a path the plots will be saved to this location [string]}
-
-\item{processingInfo}{Metadata about choices made while processing data [dataframe]}
+\item{outputSuffix}{Suffix to attach to the names of the reaeration metrics [string]}
 }
 \value{
-This function returns a list of two dataframes, the input dataframe of data for up to
-4 stations per site per date and an output dataframe appended with loss rate, travel time,
-SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600 for a given site and date
+This function returns a the input dataframe appended with loss rate, travel time,
+SF6 reaeration rate, O2 gas transfer velocity, and Schmidt number 600 for a given eventID.
 }
 \description{
 This function calculates loss rate, travel time, SF6 reaeration rate, O2
