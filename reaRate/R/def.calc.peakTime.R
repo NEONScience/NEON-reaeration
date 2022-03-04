@@ -72,6 +72,12 @@ def.calc.peakTime <- function(
   #                    max(loggerDataTrimIn$spCond, na.rm = TRUE),
   #                    medCond+30)
 
+  if(nrow(loggerDataTrimIn) < 1){
+    print(paste0("Trimmed logger data has no data for: ", currEventID))
+    return(NULL)
+  }
+  
+  
   lowPlot <- ifelse(min(loggerDataTrimIn$spCond, na.rm = TRUE) > backgroundCond - 50,
                     min(loggerDataTrimIn$spCond, na.rm = TRUE),
                     backgroundCond - 50)

@@ -270,10 +270,28 @@ def.format.reaeration <- function(
     
     #Populate sensor data for the background time (20 minutes prior to the injection start time)
     backgroundDate <- ifelse(outputDF$injectionType[i] %in% c("NaCl","model - CRI"),format(outputDF$dripStartTime[i] - 20*60, format = "%Y-%m-%d %H:%M"),format(outputDF$slugPourTime[i] - 20*60, format = "%Y-%m-%d %H:%M"))
-    if(station == "GUIL.AOS.reaeration.station.01"){
-      try(outputDF$backgroundSensorCond[i] <- waq_instantaneous$specificConductance[waq_instantaneous$horizontalPosition == "101" & waq_instantaneous$startDateTimeTrim == backgroundDate], silent = TRUE)
-    }else if(station == "GUIL.AOS.reaeration.station.04"){
-      try(outputDF$backgroundSensorCond[i] <- waq_instantaneous$specificConductance[waq_instantaneous$horizontalPosition == "102" & waq_instantaneous$startDateTimeTrim == backgroundDate], silent = TRUE)
+    
+    #Determine the best horizontal and vertical indices to use
+    
+    HOROptions <- waq_instantaneous$horizontalPosition[waq_instantaneous$startDateTimeTrim == backgroundDate]
+    
+    if("101" %in% HOROptions){
+      S1Hor <- "101"
+    }else{
+      S1Hor <- "111"
+    }
+    
+    if("102" %in% HOROptions){
+      S2Hor <- "102"
+    }else{
+      S2Hor <- "112"
+    }
+    
+    # Pull out the background data
+    if(station == paste0(currSite,".AOS.reaeration.station.01")){
+      try(outputDF$backgroundSensorCond[i] <- waq_instantaneous$specificConductance[waq_instantaneous$horizontalPosition == S1Hor & waq_instantaneous$startDateTimeTrim == backgroundDate], silent = TRUE)
+    }else if(station == paste0(currSite,".AOS.reaeration.station.04")){
+      try(outputDF$backgroundSensorCond[i] <- waq_instantaneous$specificConductance[waq_instantaneous$horizontalPosition == S2Hor & waq_instantaneous$startDateTimeTrim == backgroundDate], silent = TRUE)
     }
     
     #Fill in plateau sample collection time
@@ -283,10 +301,10 @@ def.format.reaeration <- function(
     
     #Populate sensor data for the sample collection time
     platCollectDateTrim <- format(as.POSIXct(outputDF$plateauCollectTime[i], origin = "1970-01-01", tz = "GMT"), format = "%Y-%m-%d %H:%M")
-    if(station == "GUIL.AOS.reaeration.station.01"){
-      try(outputDF$platSensorCond[i] <- waq_instantaneous$specificConductance[(!is.na(waq_instantaneous$specificConductance)) & waq_instantaneous$horizontalPosition == "101" & waq_instantaneous$startDateTimeTrim == platCollectDateTrim], silent = TRUE)
-    }else if(station == "GUIL.AOS.reaeration.station.04"){
-      try(outputDF$platSensorCond[i] <- waq_instantaneous$specificConductance[(!is.na(waq_instantaneous$specificConductance)) & waq_instantaneous$horizontalPosition == "102" & waq_instantaneous$startDateTimeTrim == platCollectDateTrim], silent = TRUE)
+    if(station == paste0(currSite,".AOS.reaeration.station.01")){
+      try(outputDF$platSensorCond[i] <- waq_instantaneous$specificConductance[waq_instantaneous$horizontalPosition == S1Hor & waq_instantaneous$startDateTimeTrim == platCollectDateTrim], silent = TRUE)
+    }else if(station == paste0(currSite,".AOS.reaeration.station.04")){
+      try(outputDF$platSensorCond[i] <- waq_instantaneous$specificConductance[waq_instantaneous$horizontalPosition == S2Hor & waq_instantaneous$startDateTimeTrim == platCollectDateTrim], silent = TRUE)
     }
     
     #Fill in plateau concentration data for constant rate injection
@@ -354,6 +372,8 @@ def.format.reaeration <- function(
       outputDF$plateauGasConcClean[i] <- outputDF$plateauGasConc[i]
       outputDF$meanPlatGasConcClean[i] <- outputDF$meanPlatGasConc[i]
       outputDF$sdPlatGasConcClean[i] <- outputDF$sdPlatGasConc[i]
+      
+      saltForBackCor <- pGasConc
     }else{
       saltOutlierIdxs <- which(!pSaltConc %in% platSaltTest$out)
       gasOutlierIdxs <- which(!pGasConc %in% platGasTest$out)
@@ -366,12 +386,14 @@ def.format.reaeration <- function(
       outputDF$plateauGasConcClean[i] <- paste(pGasConc[idxToKeep], collapse = "|")
       outputDF$meanPlatGasConcClean[i] <- mean(pGasConc[idxToKeep], na.rm = TRUE)
       outputDF$sdPlatGasConcClean[i] <- stats::sd(pGasConc[idxToKeep], na.rm = TRUE)
+      
+      saltForBackCor <- pGasConc[idxToKeep]
     }
     
     #Background correct salt data
-    try(outputDF$plateauSaltConcCleanCorr[i] <- paste((pSaltConc[idxToKeep] / outputDF$backgroundSaltConc[i]), collapse = "|"))
-    try(outputDF$meanPlatSaltConcCleanCorr[i] <- mean((pSaltConc[idxToKeep] / outputDF$backgroundSaltConc[i]), na.rm = TRUE))
-    try(outputDF$sdPlatSaltConcCleanCorr[i] <- stats::sd((pSaltConc[idxToKeep] / outputDF$backgroundSaltConc[i]), na.rm = TRUE))
+    try(outputDF$plateauSaltConcCleanCorr[i] <- paste((saltForBackCor / outputDF$backgroundSaltConc[i]), collapse = "|"))
+    try(outputDF$meanPlatSaltConcCleanCorr[i] <- mean((saltForBackCor / outputDF$backgroundSaltConc[i]), na.rm = TRUE))
+    try(outputDF$sdPlatSaltConcCleanCorr[i] <- stats::sd((saltForBackCor / outputDF$backgroundSaltConc[i]), na.rm = TRUE))
     
     #Flag salt data for unmixed situations
     platSaltCV <- outputDF$sdPlatSaltConcClean[i]/outputDF$meanPlatSaltConcClean[i]
