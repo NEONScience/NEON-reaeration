@@ -220,6 +220,11 @@ gas.loss.rate.plot <- function(
     #                  pch = c(19,4,18,18,19),
     #                  cex = c(0.9,0.9,0.9,0.9,0.9))
 
+    if(length(backSaltY) < 1 | length(platSaltY) < 1 | length(platSaltYClean) < 1 | length(platSaltYCorrClean) < 1){
+      print(paste0("Skipping plots for salt due to length(0): ", currEventID))
+      next
+    }
+    
     if(!is.null(savePlotPath)){
       png(paste0(savePlotPath,"/salt_",gsub("\\.","_",currEventID),".png"))
       par(mar = c(4, 4, 7, 4) + 0.55)
@@ -327,6 +332,11 @@ gas.loss.rate.plot <- function(
     #        cex = c(0.9,0.9,0.9,0.9),
     #        horiz = TRUE)
 
+    if(length(logPlatGasY) < 1 | length(logPlatGasSaltCorrY) < 1 | length(logPlatGasYClean) < 1 | length(logPlatGasBackSaltCorrY) < 1){
+      print(paste0("Skipping plots for gas due to length(0): ", currEventID))
+      next
+    }
+    
     if(!is.null(savePlotPath)){
       png(paste0(savePlotPath,"/gas_",gsub("\\.","_",currEventID),".png"))
       par(mar = c(4, 4, 5, 9) + 0.3)
