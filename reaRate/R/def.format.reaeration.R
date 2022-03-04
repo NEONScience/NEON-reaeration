@@ -344,9 +344,9 @@ def.format.reaeration <- function(
       cat("\t",outputDF$eventID[i],"contains fewer than 3 replicates for salt data and cannot run outlier detection.\n")
       validSaltOut <- FALSE
     }
-    if(validSaltOut){
+    #if(validSaltOut){
       platSaltTest <- graphics::boxplot(pSaltConc, plot = FALSE)
-    }
+    #}
     
     #Remove outliers from plateau gas
     validGasOut <- TRUE
@@ -359,9 +359,9 @@ def.format.reaeration <- function(
       cat("\t",outputDF$eventID[i],"contains fewer than 3 replicates for gas data and cannot run outlier detection.\n")
       validGasOut <- FALSE
     }
-    if(validGasOut){
+    #if(validGasOut){
       platGasTest <- graphics::boxplot(pGasConc, plot = FALSE)
-    }
+    #}
     
     # Remove both salt and gas if either is an outlier for a pair
     if(length(platSaltTest$out) == 0 && length(platGasTest$out) == 0){
