@@ -1,0 +1,1 @@
+There are two scripts in this folder. The exampleScript.R is meant to show an example workflow with some NEON data for users of the package. The testingScript_rea.R is more for development and has all the function inputs listed out, even when the default is used.

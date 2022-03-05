@@ -13,34 +13,28 @@
 
 #' @keywords surface water, streams, rivers, reaeration, gas transfer velocity, schmidt number
 
-#' @examples
-#' #where the data .zip file is in the working directory and has the default name,
-#' #reaFormatted <- def.format.reaeration()
-
-#' @seealso def.calc.tracerTime.R for calculating the stream travel time,
-#' def.plot.reaQcurve.R for plotting reaeration rate versusu stream flow,
-#' def.format.reaeration for formatting reaeration data
-
 # changelog and author contributions / copyrights
 #   Kaelin M. Cawley (2021-02-04)
 #     original creation
+#	Kaelin M. Cawley (2022-03-05)
+#	  updated to work with reaRate v1.0.0+
 ##############################################################################################
 
 #User Inputs
 siteID <- "GUIL"
-#Take a look at REDB next to see if data looks compromised from broken diffuser
-#siteID <- "CARI" #Not an ADCP site (yet!), NaBr injection
-#siteID <- "MAYF" #ADCP site for testing
-#siteID <- "WALK" #When station 2 is used instead of station 1
-#siteID <- "BLUE" #For testing to get travel-time for model experiments
+plotPath <- paste0("~/reaOutputs/",siteID,"/QAQC_plots")
 
 #String constants
 reaDPID <- "DP1.20190.001"
 dscDPID <- "DP1.20048.001"
 wqDPID <- "DP1.20288.001"
 
-# Download Reaeration Data
-reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID, site = siteID, check.size = FALSE) #, startdate = "2019-01-01", enddate = "2021-12-01"
+# Download Reaeration Data (just delete the input for dates to get data for all time for a site)
+reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID, 
+                                             site = siteID,
+                                             startdate = "2019-01-01", 
+                                             enddate = "2021-12-01",
+                                             check.size = FALSE)
 
 rea_backgroundFieldCondDataIn <- reaInputList$rea_backgroundFieldCondData
 rea_backgroundFieldSaltDataIn <- reaInputList$rea_backgroundFieldSaltData
@@ -64,19 +58,10 @@ sensorData <- neonUtilities::loadByProduct(dpID = wqDPID,
                                            check.size = FALSE)
 waq_instantaneousIn <- sensorData$waq_instantaneous
 
-rea_backgroundFieldCondData <- rea_backgroundFieldCondDataIn
-rea_backgroundFieldSaltData <- rea_backgroundFieldSaltDataIn
-rea_fieldData <- rea_fieldDataIn
-rea_plateauMeasurementFieldData <- rea_plateauMeasurementFieldDataIn
-rea_plateauSampleFieldData <- rea_plateauSampleFieldDataIn
-rea_externalLabDataSalt <- rea_externalLabDataSaltIn
-rea_externalLabDataGas <- rea_externalLabDataGasIn
-rea_widthFieldData <- rea_widthFieldDataIn
-dsc_fieldData <- dsc_fieldDataIn
-dsc_individualFieldData <- dsc_individualFieldDataIn
-dsc_fieldDataADCP <- dsc_fieldDataADCPIn
-waq_instantaneous <- waq_instantaneousIn
+# It can take a while to download data, so save it in case you need to go back
+save.image(paste0("~/reaOutputs/",siteID,"/downloadedData.RData"))
 
+# Format the downloaded data so everything is in one table
 reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn,
                                                rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
                                                rea_fieldData = rea_fieldDataIn,
@@ -90,151 +75,57 @@ reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea
                                                dsc_fieldDataADCP = dsc_fieldDataADCPIn,
                                                waq_instantaneous = waq_instantaneousIn)
 
-inputFile = reaFormatted
-injectionTypeName = "injectionType"
-eventID = "eventID"
-stationToInjectionDistance = "stationToInjectionDistance"
-plateauGasConc = "plateauGasConc"
-corrPlatSaltConc = "corrPlatSaltConc"
-savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211"
+# Example of a manual step... Remove some bad looking sensor data
+reaFormatted$backgroundSensorCond[reaFormatted$backgroundSensorCond < 105] <- NA
+reaFormatted$platSensorCond[reaFormatted$platSensorCond < 105] <- NA
 
+# Calculate SF6 loss rates
 plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
-                                        injectionTypeName = "injectionType",
-                                        eventID = "eventID",
-                                        stationToInjectionDistance = "stationToInjectionDistance",
-                                        plateauGasConc = "plateauGasConc",
-                                        corrPlatSaltConc = "corrPlatSaltConc",
-                                        savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211")
+                                        savePlotPath = plotPath)
 
-# Designed to plot background salt concentrations over time and flow
-backSaltPlot <- reaRate::bkgd.salt.conc.plot(inputFile = plotsOut,
-                                             savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/GUIL_20220211")
+# Take a look at the background data
+reaRate::bkgd.salt.conc.plot(inputFile = plotsOut,
+                             savePlotPath = plotPath)
 
+# Calculate travel times
+reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = plotsOut,
+                                                loggerData = reaInputList$rea_conductivityFieldData,
+                                                plot = TRUE,
+                                                savePlotPath = plotPath)
 
-inputFile = plotsOut
-loggerData = reaInputList$rea_conductivityFieldData
-namedLocation = "namedLocation"
-injectionTypeName = "injectionType"
-eventID = "eventID"
-stationToInjectionDistance = "stationToInjectionDistance"
-plateauGasConc = "plateauGasConcClean"
-corrPlatSaltConc = "plateauSaltConcClean"
-hoboSampleID = "hoboSampleID"
-discharge = "fieldDischarge"
-waterTemp = "waterTemp"
-wettedWidth = "wettedWidth"
-plot = TRUE
-savePlotPath = "C:/Users/kcawley/Desktop/reaTesting/"
-processingInfo = NULL
+# Example of a manual step... A few I didn't like where I picked the range, so trying again
+badEventIDs <- c("GUIL.20200812", "GUIL.20201216")
+reaFormattedTake2 <- reaRatesTrvlTime$inputFile[reaRatesTrvlTime$inputFile$eventID %in% badEventIDs,]
+reaRatesTrvlTimeTake2 <- reaRate::def.calc.trvl.time(inputFile = reaFormattedTake2,
+                                                     loggerData = reaInputList$rea_conductivityFieldData,
+                                                     plot = TRUE,
+                                                     savePlotPath = plotPath)
+reaRatesTrvlTimeAll <- rbind(reaRatesTrvlTime$outputDF[!reaRatesTrvlTime$outputDF$eventID %in% badEventIDs,],
+                             reaRatesTrvlTimeTake2$outputDF)
 
-reaRatesCalc <- reaRate::def.calc.reaeration(inputFile = plotsOut,
-                                             loggerData = reaInputList$rea_conductivityFieldData,
-                                             namedLocation = "namedLocation",
-                                             injectionTypeName = "injectionType",
-                                             eventID = "eventID",
-                                             stationToInjectionDistance = "stationToInjectionDistance",
-                                             plateauGasConc = "plateauGasConcClean",
-                                             corrPlatSaltConc = "plateauSaltConcClean",
-                                             hoboSampleID = "hoboSampleID",
-                                             discharge = "fieldDischarge",
-                                             waterTemp = "waterTemp",
-                                             wettedWidth = "wettedWidth",
-                                             plot = TRUE,
-                                             savePlotPath = NULL,
-                                             processingInfo = NULL)
+# Use SF6 loss rates for clean data to get k600 and K600
+reaRatesCalc <- reaRate::def.calc.reaeration(inputFile = reaRatesTrvlTimeAll,
+                                             lossRateSF6 = "slopeClean",
+                                             outputSuffix = "clean")
 
-outputDF <- reaRatesCalc$outputDF
-outputDFClean <- outputDF[outputDF$k600 > 0,]
-plot(outputDFClean$meanQ, outputDFClean$k600)
+# Use SF6 loss rates for background and plateaur salt corrected data to get k600 and K600
+reaRatesCalc <- reaRate::def.calc.reaeration(inputFile = reaRatesCalc,
+                                             lossRateSF6 = "slopeBackCorr",
+                                             outputSuffix = "allCorr")
 
-#Testing when not using loadByProduct
-rea_backgroundFieldCondDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_backgroundFieldCondData.2018-06.expanded.20201218T123834Z.csv",
-                                            sep = ",",
-                                            header = TRUE)
-rea_backgroundFieldSaltDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_backgroundFieldSaltData.2018-06.expanded.20201218T123834Z.csv",
-                                            sep = ",",
-                                            header = TRUE)
-rea_fieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_fieldData.2018-06.expanded.20201218T123834Z.csv",
-                              sep = ",",
-                              header = TRUE)
-rea_plateauMeasurementFieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_plateauMeasurementFieldData.2018-06.expanded.20201218T123834Z.csv",
-                                                sep = ",",
-                                                header = TRUE)
-rea_externalLabDataSaltIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_externalLabDataSalt.2018-06.expanded.20201218T123834Z.csv",
-                                        sep = ",",
-                                        header = TRUE)
-rea_externalLabDataGasIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_externalLabDataGas.2018-06.expanded.20201218T123834Z.csv",
-                                       sep = ",",
-                                       header = TRUE)
-rea_widthFieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20190.001/NEON.D12.BLDE.DP1.20190.001.rea_widthFieldData.2018-06.expanded.20201218T123834Z.csv",
-                                   sep = ",",
-                                   header = TRUE)
-#Discharge data download
-dsc_fieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20048.001/NEON.D12.BLDE.DP1.20048.001.dsc_fieldData.2018-06.basic.20210112T153513Z.csv",
-                              sep = ",",
-                              header = TRUE)
-dsc_individualFieldDataIn <- read.table("C:/Users/kcawley/Desktop/NEON.D12.BLDE.DP1.20048.001/NEON.D12.BLDE.DP1.20048.001.dsc_individualFieldData.2018-06.basic.20210112T153513Z.csv",
-                                        sep = ",",
-                                        header = TRUE)
-
-reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn,
-                                               rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
-                                               rea_fieldData = rea_fieldDataIn,
-                                               rea_plateauMeasurementFieldData = rea_plateauMeasurementFieldDataIn,
-                                               rea_externalLabDataSalt = rea_externalLabDataSaltIn,
-                                               rea_externalLabDataGas = rea_externalLabDataGasIn,
-                                               rea_widthFieldData = rea_widthFieldDataIn,
-                                               dsc_fieldData = dsc_fieldDataIn,
-                                               dsc_individualFieldData = dsc_individualFieldDataIn)
+# Take a quick look at the different k660 v discharge depending on salt correction choice
+plot(reaRatesCalc$meanQ,
+     reaRatesCalc$k600.clean,
+     pch = 19,
+     xlab = "discharge",
+     ylab = "k600")
+points(reaRatesCalc$meanQ,
+       reaRatesCalc$k600.allCorr,
+       pch = 19,
+       col = "blue")
+legend("topright",
+       legend = c("gas uncorrected","gas background salt corrected"),
+       pch = 19,
+       col = c("black", "blue"))
 
 
-
-#Testing some ideas with plotly
-
-library(plotly)
-library(crosstalk)
-library(DT)
-
-
-sd <- SharedData$new(iris)
-
-a <- plot_ly(sd, x = ~Sepal.Width, y = ~Sepal.Length) %>% 
-  add_markers(alpha = 0.5) %>%
-  highlight("plotly_selected", dynamic = TRUE)
-
-
-options(persistent = TRUE)
-
-p <- datatable(sd)
-
-bscols(widths = c(6, 4), a, p)
-
-test <- as.data.frame(p)
-
-
-library(plotly)
-library(shiny)
-
-mtcars$key <- row.names(mtcars)
-mtcars$col <- "black"
-
-ui <- fluidPage(
-  plotlyOutput("plot")
-)
-
-server <- function(input, output, session) {
-  output$plot <- renderPlotly({
-    click_data <- event_data("plotly_click", priority   = "event")
-    print(click_data)
-    select_data <- event_data("plotly_selected", priority   = "event")
-    if (!is.null(select_data)) {
-      mtcars[mtcars$key %in% select_data$customdata, "col"] <- "blue"
-    }
-    if (!is.null(click_data)) {
-      mtcars[mtcars$key %in% click_data$customdata, "col"] <- "red"
-    }
-    p <- plot_ly(mtcars, x = ~mpg, y=~wt, colors = ~sort(unique(col)), color = ~col, customdata = ~key, type = "scatter", mode = "markers") %>% layout(dragmode = "lasso")
-  })
-}
-
-shinyApp(ui, server)

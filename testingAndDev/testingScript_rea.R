@@ -1,53 +1,169 @@
+##############################################################################################
+#' @title Script to help with troubleshooting and updates
 
-library(devtools)
-library(roxygen2)
+#' @author
+#' Kaelin M. Cawley \email{kcawley@battelleecology.org} \cr
 
-setwd("C:/Users/kcawley/Documents/GitHub/NEON-reaeration")
-#setwd("C:/Users/Kaelin/Documents/GitHub/biogeochemistryIPT/reaeration/Science Only/rCodeForRelease")
-#create("reaRate")
-#install_github("NEONScience/NEON-utilities/neonUtilities", force = T)
-install("reaRate")
-library(reaRate)
+#' @description This script has all of the inputs typed out for ease of running scripts for 
+#' troubleshooting and development.
 
-dataDir <- "C:/Users/kcawley/Downloads/NEON_reaeration.zip"
-#dataDir <- "C:/Users/Kaelin/Downloads/NEON_reaeration.zip"
-#dataDir <- "C:/Users/Kcawley/Desktop/NEON_reaeration.zip"
+#' @references
+#' License: GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007
 
-#For use with the API functionality
-dataDir <- "API"
-site <- "POSE"
-site <- "MCDI"
-site <- "LEWI"
-site <- "GUIL"
-#site <- "WALK"
-#site <- "all"
+#' @keywords surface water, streams, rivers, reaeration, gas transfer velocity, schmidt number
 
-reaFormatted <- def.format.reaeration(dataDir = dataDir, site = site, fieldQ = TRUE)
-#write.csv(reaFormatted, "C:/Users/kcawley/Documents/GitHub/biogeochemistryIPT/reaeration/Science Only/rCodeForRelease/reaRate/inst/extdata/reaTestData.csv", row.names = F)
-#write.csv(condDataS1, "C:/Users/kcawley/Documents/GitHub/biogeochemistryIPT/reaeration/Science Only/rCodeForRelease/reaRate/inst/extdata/condDataS1.csv", row.names = F)
+# changelog and author contributions / copyrights
+#   Kaelin M. Cawley (2021-02-04)
+#     original creation
+#	Kaelin M. Cawley (2022-03-05)
+#	  updated to work with reaRate v1.0.0+
+##############################################################################################
 
-#reaRatesCalc <- def.calc.reaeration(inputFile = reaFormatted, loggerFile = , dataDir = dataDir, plot = TRUE)
-reaRatesCalc <- def.calc.reaeration(inputFile = reaFormatted, 
-                                    dataDir = "C:/Users/kcawley/Documents/GitHub/NEON-reaeration/filesToStack20190/stackedFiles/", 
-                                    loggerFile = "rea_conductivityFieldData.csv", 
-                                    plot = TRUE,
-                                    savePlotPath = "H:/Operations Optimization/savedPlots")
+#User Inputs
+siteID <- "COMO"
+plotPath <- paste0("~/reaOutputs/",siteID,"/QAQC_plots")
 
-outputDF <- reaRatesCalc$outputDF
-inputFile <- reaRatesCalc$inputFile
+#String constants
+reaDPID <- "DP1.20190.001"
+dscDPID <- "DP1.20048.001"
+wqDPID <- "DP1.20288.001"
 
-plot(outputDF$meanQ,outputDF$travelTime, col = "blue", type = "p", pch = 16)
-plot(outputDF$meanQ,outputDF$lossRateSF6, col = "blue", type = "p", pch = 16)
-plot(outputDF$meanQ,outputDF$k600, col = "blue", type = "p", pch = 16)
+# Download Reaeration Data (just delete the input for dates to get data for all time for a site)
+reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID, 
+                                             site = siteID,
+                                             startdate = "2019-01-01", 
+                                             enddate = "2021-12-01",
+                                             check.size = FALSE)
 
-#Calculate travel time for BLUE for engineering design analysis
-dataDir <- "API"
-site <- "BLUE"
-reaFormatted <- def.format.reaeration(dataDir = dataDir, site = site, fieldQ = TRUE)
+rea_backgroundFieldCondDataIn <- reaInputList$rea_backgroundFieldCondData
+rea_backgroundFieldSaltDataIn <- reaInputList$rea_backgroundFieldSaltData
+rea_fieldDataIn <- reaInputList$rea_fieldData
+rea_plateauMeasurementFieldDataIn <- reaInputList$rea_plateauMeasurementFieldData
+rea_plateauSampleFieldDataIn <- reaInputList$rea_plateauSampleFieldData
+rea_externalLabDataSaltIn <- reaInputList$rea_externalLabDataSalt
+rea_externalLabDataGasIn <- reaInputList$rea_externalLabDataGas
+rea_widthFieldDataIn <- reaInputList$rea_widthFieldData
 
-setwd("C:/Users/kcawley/Documents/GitHub/NEON-reaeration/reaRate")
-#setwd("C:/Users/Kaelin/Documents/GitHub/biogeochemistryIPT/reaeration/Science Only/rCodeForRelease/reaRate")
-document()
-#devtools::use_data(reaFormatted, reaFormatted)
-#devtools::use_data(condDataS1, condDataS1)
-devtools::check()
+# Download Discharge Data
+qInputList <- neonUtilities::loadByProduct(dpID = dscDPID, site = siteID, check.size = FALSE)
+
+dsc_fieldDataIn <- qInputList$dsc_fieldData
+dsc_individualFieldDataIn <- qInputList$dsc_individualFieldData
+dsc_fieldDataADCPIn <- qInputList$dsc_fieldDataADCP
+
+# Download Sensor Data
+sensorData <- neonUtilities::loadByProduct(dpID = wqDPID, 
+                                           site = siteID,
+                                           check.size = FALSE)
+waq_instantaneousIn <- sensorData$waq_instantaneous
+
+# It can take a while to download data, so save it in case you need to go back
+save.image(paste0("~/reaOutputs/",siteID,"/downloadedData.RData"))
+
+# Format the downloaded data so everything is in one table
+rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn
+rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn
+rea_fieldData = rea_fieldDataIn
+rea_plateauMeasurementFieldData = rea_plateauMeasurementFieldDataIn
+rea_plateauSampleFieldData = rea_plateauSampleFieldDataIn
+rea_externalLabDataSalt = rea_externalLabDataSaltIn
+rea_externalLabDataGas = rea_externalLabDataGasIn
+rea_widthFieldData = rea_widthFieldDataIn
+dsc_fieldData = dsc_fieldDataIn
+dsc_individualFieldData = dsc_individualFieldDataIn
+dsc_fieldDataADCP = dsc_fieldDataADCPIn
+waq_instantaneous = waq_instantaneousIn
+
+reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn,
+                                               rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
+                                               rea_fieldData = rea_fieldDataIn,
+                                               rea_plateauMeasurementFieldData = rea_plateauMeasurementFieldDataIn,
+                                               rea_plateauSampleFieldData = rea_plateauSampleFieldDataIn,
+                                               rea_externalLabDataSalt = rea_externalLabDataSaltIn,
+                                               rea_externalLabDataGas = rea_externalLabDataGasIn,
+                                               rea_widthFieldData = rea_widthFieldDataIn,
+                                               dsc_fieldData = dsc_fieldDataIn,
+                                               dsc_individualFieldData = dsc_individualFieldDataIn,
+                                               dsc_fieldDataADCP = dsc_fieldDataADCPIn,
+                                               waq_instantaneous = waq_instantaneousIn)
+
+# Calculate SF6 loss rates
+inputFile = reaFormatted
+injectionTypeName = "injectionType"
+eventID = "eventID"
+stationToInjectionDistance = "stationToInjectionDistance"
+plateauGasConc = "plateauGasConc"
+corrPlatSaltConc = "corrPlatSaltConc"
+savePlotPath = plotPath
+
+plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
+                                        savePlotPath = plotPath)
+
+# Take a look at the background data
+inputFile = plotsOut
+savePlotPath = plotPath
+
+reaRate::bkgd.salt.conc.plot(inputFile = plotsOut,
+                             savePlotPath = plotPath)
+
+# Calculate travel times
+inputFile = plotsOut
+loggerData = reaInputList$rea_conductivityFieldData
+namedLocation = "namedLocation"
+injectionTypeName = "injectionType"
+eventID = "eventID"
+slopeRaw = 'slopeRaw'
+slopeClean = 'slopeClean'
+slopeSaltCorr = 'slopeSaltCorr'
+slopeBackCorr = 'slopeBackCorr'
+stationToInjectionDistance = "stationToInjectionDistance"
+hoboSampleID = "hoboSampleID"
+slugPourTime = "slugPourTime"
+dripStartTime = "dripStartTime"
+meanBackgroundCond = "meanBackgroundCond"
+discharge = "fieldDischarge"
+waterTemp = "waterTemp"
+wettedWidth = "wettedWidth"
+plot = TRUE
+savePlotPath = plotPath
+
+reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = plotsOut,
+                                                loggerData = reaInputList$rea_conductivityFieldData,
+                                                plot = TRUE,
+                                                savePlotPath = plotPath)
+
+# Use SF6 loss rates for clean data to get k600 and K600
+inputFile = reaRatesTrvlTime$outputDF
+lossRateSF6 = "lossRateSF6"
+peakMaxVelocity = "peakMaxVelocity"
+meanDepth = "meanDepth"
+meanTemp = "meanTemp"
+outputSuffix = "clean"
+
+reaRatesCalc <- reaRate::def.calc.reaeration(inputFile = reaRatesTrvlTime$outputDF,
+                                             lossRateSF6 = "slopeClean",
+                                             outputSuffix = "clean")
+
+# Take a quick look at the different k660 v discharge depending on salt correction choice
+plot(reaRatesCalc$meanQ,
+     reaRatesCalc$k600.clean,
+     pch = 19,
+     xlab = "discharge",
+     ylab = "k600")
+# points(reaRatesCalc$meanQ,
+#        reaRatesCalc$k600.allCorr,
+#        pch = 19,
+#        col = "blue")
+# legend("topright",
+#        legend = c("gas uncorrected","gas background salt corrected"),
+#        pch = 19,
+#        col = c("black", "blue"))
+
+# For rebuilding the package
+# Don't forget to update the version in the description file!
+setwd("~/GitHub/NEON-reaeration/reaRate")
+devtools::document()
+devtools::check() 
+setwd("~/GitHub/NEON-reaeration/")
+devtools::install("reaRate") 
+
