@@ -101,7 +101,7 @@ bkgd.salt.conc.plot <- function(
                    cex = c(0.9, 0.9))
   
   if(!is.null(savePlotPath)){
-    dev.copy(png,paste0(savePlotPath,unique(inputFile$siteID),"_backSaltByEventID.png"))
+    dev.copy(png,paste0(savePlotPath,"/",unique(inputFile$siteID),"_backSaltByEventID.png"))
     dev.off()
   }
   
@@ -152,7 +152,7 @@ bkgd.salt.conc.plot <- function(
                    cex = c(0.9, 0.9))
   
   if(!is.null(savePlotPath)){
-    dev.copy(png,paste0(savePlotPath,unique(inputFile$siteID),"_backSaltByDischarge.png"))
+    dev.copy(png,paste0(savePlotPath,"/",unique(inputFile$siteID),"_backSaltByDischarge.png"))
     dev.off()
   }
   
@@ -171,7 +171,7 @@ bkgd.salt.conc.plot <- function(
   abline(a = sensorFit$coefficients[["Intercept"]], b = sensorFit$coefficients[["X"]], col = "blue")
   
   if(!is.null(savePlotPath)){
-    dev.copy(png,paste0(savePlotPath,unique(inputFile$siteID),"_sensorVersusGrab.png"))
+    dev.copy(png,paste0(savePlotPath,"/",unique(inputFile$siteID),"_sensorVersusGrab.png"))
     dev.off()
   }
   

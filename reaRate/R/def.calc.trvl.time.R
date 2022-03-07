@@ -10,6 +10,7 @@
 #' @importFrom grDevices dev.off
 #' @importFrom grDevices dev.copy
 #' @importFrom grDevices png
+#' @importFrom grDevices jpeg
 #' @importFrom graphics identify
 #' @importFrom graphics abline
 #' @importFrom graphics axis
@@ -444,23 +445,23 @@ def.calc.trvl.time <- function(
       maxY <- max(s1YData,s4YData,na.rm = TRUE)
       
       #Save out plot of loss rate to specified directory
-      if(!is.null(savePlotPath)){
-        png(paste0(savePlotPath,"/travelTime_",currEventID,".png"))
-        plot(x,
-             s1YData,
-             xlim = c(minTime,maxTime),
-             ylim = c(minY,maxY),
-             ylab = "Conductivity, uS",
-             xlab = "Time (UTC)")
-        mtext(paste0("Travel Time = ",outputDF$peakMaxTravelTime[i]," seconds, (",round(as.numeric(outputDF$peakMaxTravelTime[i])/60,digits=1) ," min)\n Click anywhere to close and continue"), cex = 1.2)
-        points(condDataS4$dateTimeLogger[condDataS4$dateTimeLogger > s4peakLoc$startPlotTime & condDataS4$dateTimeLogger < s4peakLoc$endPlotTime],
-               s4YData,
-               col = "blue")
-        abline(v = s1peakLoc$peakTime)
-        abline(v = s4peakLoc$peakTime, col = "blue")
-        graphics::legend(x = "bottomright", legend = c("upstream","downstream"), lty = c(1,1), col = c("black","blue"))
-        dev.off()
-      }
+      # if(!is.null(savePlotPath)){
+      #   png(paste0(savePlotPath,"/travelTime_",currEventID,".png"))
+      #   plot(x,
+      #        s1YData,
+      #        xlim = c(minTime,maxTime),
+      #        ylim = c(minY,maxY),
+      #        ylab = "Conductivity, uS",
+      #        xlab = "Time (UTC)")
+      #   mtext(paste0("Travel Time = ",outputDF$peakMaxTravelTime[i]," seconds, (",round(as.numeric(outputDF$peakMaxTravelTime[i])/60,digits=1) ," min)\n Click anywhere to close and continue"), cex = 1.2)
+      #   points(condDataS4$dateTimeLogger[condDataS4$dateTimeLogger > s4peakLoc$startPlotTime & condDataS4$dateTimeLogger < s4peakLoc$endPlotTime],
+      #          s4YData,
+      #          col = "blue")
+      #   abline(v = s1peakLoc$peakTime)
+      #   abline(v = s4peakLoc$peakTime, col = "blue")
+      #   graphics::legend(x = "bottomright", legend = c("upstream","downstream"), lty = c(1,1), col = c("black","blue"))
+      #   dev.off()
+      # }
       plot(x,
            s1YData,
            xlim = c(minTime,maxTime),
@@ -475,6 +476,9 @@ def.calc.trvl.time <- function(
       abline(v = s4peakLoc$peakTime, col = "blue")
       graphics::legend(x = "bottomright", legend = c("upstream","downstream"), lty = c(1,1), col = c("black","blue"))
       ans <- identify(x, s1YData, n = 1, tolerance = 100, plot = F)
+      if(!is.null(savePlotPath)){
+        dev.copy(jpeg,paste0(savePlotPath,"/travelTime_",currEventID,".jpg"))
+      }
       invisible(dev.off())
     }
     
