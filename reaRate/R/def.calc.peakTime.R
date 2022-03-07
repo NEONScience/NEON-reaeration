@@ -77,6 +77,10 @@ def.calc.peakTime <- function(
     return(NULL)
   }
   
+  if(is.na(backgroundCond) | is.nan(backgroundCond) | is.null(backgroundCond)){
+    backgroundCond <- 0
+  }
+  
   
   lowPlot <- ifelse(min(loggerDataTrimIn$spCond, na.rm = TRUE) > backgroundCond - 50,
                     min(loggerDataTrimIn$spCond, na.rm = TRUE),
@@ -102,7 +106,16 @@ def.calc.peakTime <- function(
          lwd = 2,
          pch = 19,
          cex = 2)
-  title(main = paste0("Click green dot (upper lefthand) if the peak/plateau is identifiable. \nClick red dot (upper righthand) if not identifiable.\n",currEventID))
+  
+  if(injectionType == "NaBr"){
+    titleText <- paste0("Click green dot (upper lefthand) if the peak is identifiable. \nClick red dot (upper righthand) if not identifiable.\n",
+                        currEventID)
+  }else{
+    titleText <- paste0("Click green dot (upper lefthand) if the plateau rising limb is identifiable. \nClick red dot (upper righthand) if not identifiable.\n",
+                        currEventID)
+  }
+  
+  title(main = titleText)
   badPlotBox <- identify(x = c(min(loggerDataTrimIn$dateTimeLogger),max(loggerDataTrimIn$dateTimeLogger)),
                          y = c(highPlot-(highPlot-lowPlot)*.2,highPlot-(highPlot-lowPlot)*.2),
                          n = 1,
@@ -111,6 +124,14 @@ def.calc.peakTime <- function(
   Sys.sleep(1)
   invisible(dev.off())
 
+  if(injectionType == "NaBr"){
+    pickText <- paste0("Click left and right of peak. \n Keep at least the width of the '+' cursor on either side.\n", 
+                       currEventID)
+  }else{
+    pickText <- paste0("Click left and right of plateau rising limb. \n Keep at least the width of the '+' cursor on either side.\n", 
+                       currEventID)
+  }
+  
   if(length(badPlotBox) && badPlotBox==1){
     #If things look good, move on
     invisible(dev.new(noRStudioGD = TRUE))
@@ -119,7 +140,7 @@ def.calc.peakTime <- function(
          xlab = "Measurement Number",
          ylab = "Specific Conductance",
          ylim = c(lowPlot, highPlot))
-    title(main = paste0("Click left and right of of peak/plateau. \n Keep at least the width of the '+' cursor on either side.\n"))
+    title(main = pickText)
     ans <- identify(x = loggerDataTrimIn$dateTimeLogger,
                     y = loggerDataTrimIn$spCond,
                     n = 2,
