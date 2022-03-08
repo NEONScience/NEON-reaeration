@@ -89,7 +89,7 @@ def.calc.trvl.time <- function(
   slugPourTime = "slugPourTime",
   dripStartTime = "dripStartTime",
   meanBackgroundCond = "meanBackgroundCond",
-  discharge = "fieldDischarge",
+  discharge = "fieldDischarge_lps",
   waterTemp = "waterTemp",
   wettedWidth = "wettedWidth",
   plot = TRUE,
@@ -144,7 +144,8 @@ def.calc.trvl.time <- function(
     # 'centroidVelocity',
     # 'harmonicMeanVelocity',
     'meanDepth',
-    'meanQ',
+    'meanQ_lps',
+    'meanQ_cms',
     'meanTemp'
   )
   
@@ -491,8 +492,9 @@ def.calc.trvl.time <- function(
         inputFile[inputFile[[namLocIdx]] == S1 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] # meters
     }
     outputDF$peakMaxVelocity[i] <- outputDF$btwStaDist[i]/as.numeric(outputDF$peakMaxTravelTime[i]) # m/s
-    outputDF$meanQ[i] <- mean(inputFile[inputFile[[eventIDIdx]] == currEventID, QIdx], na.rm = T)*convLpsCms # m^3 s^-1
-    outputDF$meanDepth[i] <- outputDF$meanQ[i]/(inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, wwIdx]*outputDF$peakMaxVelocity[i]) # meters
+    outputDF$meanQ_lps[i] <- mean(inputFile[inputFile[[eventIDIdx]] == currEventID, QIdx], na.rm = T) #lps
+    outputDF$meanQ_cms[i] <- mean(inputFile[inputFile[[eventIDIdx]] == currEventID, QIdx], na.rm = T)*convLpsCms # m^3 s^-1
+    outputDF$meanDepth[i] <- outputDF$meanQ_cms[i]/(inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, wwIdx]*outputDF$peakMaxVelocity[i]) # meters
     outputDF$meanTemp[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, watTempIdx]
     
     # Carry over SF6 loss rate slopes from the inputFile

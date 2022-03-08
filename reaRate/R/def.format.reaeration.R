@@ -194,7 +194,7 @@ def.format.reaeration <- function(
     'wettedWidth',
     'waterTemp',
     'hoboSampleID',
-    'fieldDischarge',
+    'fieldDischarge_lps',
     'stage',
     'eventID'
   )
@@ -220,7 +220,7 @@ def.format.reaeration <- function(
   for(i in unique(outputDF$eventID)){
     #print(i)
     currQ <- dsc_fieldData_calc$calcQ[dsc_fieldData_calc$eventID == i]
-    try(outputDF$fieldDischarge[outputDF$eventID == i] <- currQ, silent = T)
+    try(outputDF$fieldDischarge_lps[outputDF$eventID == i] <- currQ, silent = T)
     
     currStage <- dsc_fieldData_calc$streamStage[dsc_fieldData_calc$eventID == i]
     try(outputDF$stage[outputDF$eventID == i] <- currStage, silent = T)
@@ -232,9 +232,9 @@ def.format.reaeration <- function(
     currQ <- dsc_fieldDataADCP$totalDischarge[dsc_fieldDataADCP$eventID == i]
     currQUnits <- dsc_fieldDataADCP$totalDischargeUnits[dsc_fieldDataADCP$eventID == i]
     if(length(currQUnits) > 0 && currQUnits == "cubicMetersPerSecond"){
-      currQ <- currQ * 1000
+      currQ <- currQ * 1000 # Convert to lps
     }
-    try(outputDF$fieldDischarge[outputDF$eventID == i] <- currQ, silent = T)
+    try(outputDF$fieldDischarge_lps[outputDF$eventID == i] <- currQ, silent = T)
     
     currStage <- dsc_fieldDataADCP$streamStage[dsc_fieldDataADCP$eventID == i]
     try(outputDF$stage[outputDF$eventID == i] <- currStage, silent = T)

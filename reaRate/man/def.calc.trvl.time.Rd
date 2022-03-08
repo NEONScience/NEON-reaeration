@@ -19,7 +19,7 @@ def.calc.trvl.time(
   slugPourTime = "slugPourTime",
   dripStartTime = "dripStartTime",
   meanBackgroundCond = "meanBackgroundCond",
-  discharge = "fieldDischarge",
+  discharge = "fieldDischarge_lps",
   waterTemp = "waterTemp",
   wettedWidth = "wettedWidth",
   plot = TRUE,
