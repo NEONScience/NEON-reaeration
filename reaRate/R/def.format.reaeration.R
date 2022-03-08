@@ -84,6 +84,9 @@ def.format.reaeration <- function(
   # #Hopefully I can comment this out in the future when we get a siteID column, but for now, I'll make one
   # dsc_fieldDataADCP$siteID <- dsc_fieldDataADCP$stationID
   
+  # Remove all samplingImpractical records from rea_fieldData
+  rea_fieldData <- rea_fieldData[is.na(rea_fieldData$samplingImpractical),]
+  
   # Pull the timezone for the site(s) for making sure the eventIDs match depending on the time of day, need to convert to local time.
   allSites <- unique(rea_fieldData$siteID)
   
