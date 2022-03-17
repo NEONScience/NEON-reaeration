@@ -151,6 +151,9 @@ def.format.reaeration <- function(
     loggerSiteData$eventID <- loggerSiteData$eventID.x
   }
   
+  # Remove loggerSiteData rows with no injectionType
+  loggerSiteData <- loggerSiteData[!is.na(loggerSiteData$injectionType),]
+  
   
   #Add the injectate, background, or plateau type to external lab data
   #This is probably going to have to change with the switch to using only barcodes!
