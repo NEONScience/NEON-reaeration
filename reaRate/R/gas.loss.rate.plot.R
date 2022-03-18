@@ -363,38 +363,62 @@ gas.loss.rate.plot <- function(
       points(platGasXforBackSaltCorrY, logPlatGasBackSaltCorrY, col = "orange", pch = 1)
       
       try(rawLineFit <- lsfit(platGasXforY,logPlatGasY), silent = T)
-      rawSlope <- rawLineFit$coefficients[["X"]]
+      try(rawSlope <- rawLineFit$coefficients[["X"]], silent = T)
       try(cleanLineFit <- lsfit(platGasXforYClean,logPlatGasYClean), silent = T)
-      cleanSlope <- cleanLineFit$coefficients[["X"]]
+      try(cleanSlope <- cleanLineFit$coefficients[["X"]], silent = T)
       try(corrLineFit <- lsfit(platGasXforSaltCorrY,logPlatGasSaltCorrY), silent = T)
-      corrSlope <- corrLineFit$coefficients[["X"]]
+      try(corrSlope <- corrLineFit$coefficients[["X"]], silent = T)
       try(backLineFit <- lsfit(platGasXforBackSaltCorrY,logPlatGasBackSaltCorrY), silent = T)
-      backSlope <- backLineFit$coefficients[["X"]]
+      try(backSlope <- backLineFit$coefficients[["X"]], silent = T)
       
-      abline(a = rawLineFit$coefficients[["Intercept"]], b = rawLineFit$coefficients[["X"]], col = "red")
-      abline(a = cleanLineFit$coefficients[["Intercept"]], b = cleanLineFit$coefficients[["X"]], col = "purple")
-      abline(a = corrLineFit$coefficients[["Intercept"]], b = corrLineFit$coefficients[["X"]], col = "cyan")
-      abline(a = backLineFit$coefficients[["Intercept"]], b = backLineFit$coefficients[["X"]], col = "orange")
+      try(abline(a = rawLineFit$coefficients[["Intercept"]], b = rawLineFit$coefficients[["X"]], col = "red"), silent = T)
+      try(abline(a = cleanLineFit$coefficients[["Intercept"]], b = cleanLineFit$coefficients[["X"]], col = "purple"), silent = T)
+      try(abline(a = corrLineFit$coefficients[["Intercept"]], b = corrLineFit$coefficients[["X"]], col = "cyan"), silent = T)
+      try(abline(a = backLineFit$coefficients[["Intercept"]], b = backLineFit$coefficients[["X"]], col = "orange"), silent = T)
+      
+      if(exists("rawLineFit")){
+        rawLineFitForPlot <- signif(rawLineFit$coefficients[["X"]], 3)
+      }else{
+        rawLineFitForPlot <- NA
+      }
+      
+      if(exists("cleanLineFit")){
+        cleanLineFitForPlot <- signif(cleanLineFit$coefficients[["X"]], 3)
+      }else{
+        cleanLineFitForPlot <- NA
+      }
+      
+      if(exists("corrLineFit")){
+        corrLineFitForPlot <- signif(corrLineFit$coefficients[["X"]], 3)
+      }else{
+        corrLineFitForPlot <- NA
+      }
+      
+      if(exists("backLineFit")){
+        backLineFitForPlot <- signif(backLineFit$coefficients[["X"]], 3)
+      }else{
+        backLineFitForPlot <- NA
+      }
       
       #Add legend at the top
       graphics::legend(x = "topright",
                        inset = c(-0.45,-0.2),
                        xpd = TRUE,
-                       legend = c(paste0("Raw Gas ", signif(rawLineFit$coefficients[["X"]], 3)),
-                                  paste0("Clean gas - Mixed ", signif(cleanLineFit$coefficients[["X"]], 3)),
-                                  paste0("Clean gas - Unmixed ", signif(cleanLineFit$coefficients[["X"]], 3)),
-                                  paste0("Plateau Corrected ", signif(corrLineFit$coefficients[["X"]], 3)),
-                                  paste0("Background Corrected ", signif(backLineFit$coefficients[["X"]], 3))),
+                       legend = c(paste0("Raw Gas ", rawLineFitForPlot),
+                                  paste0("Clean gas - Mixed ", cleanLineFitForPlot),
+                                  paste0("Clean gas - Unmixed ", cleanLineFitForPlot),
+                                  paste0("Plateau Corrected ", corrLineFitForPlot),
+                                  paste0("Background Corrected ", backLineFitForPlot)),
                        col = c("red","purple","purple4","cyan","orange"),
                        pch = c(4,19,19,18,1),
                        cex = c(0.9,0.9,0.9,0.9,0.9))
       dev.off()
     }
 
-    inputFile$slopeRaw[inputFile$eventID == currEventID] <- rawLineFit$coefficients[["X"]]
-    inputFile$slopeClean[inputFile$eventID == currEventID] <- cleanLineFit$coefficients[["X"]]
-    inputFile$slopeSaltCorr[inputFile$eventID == currEventID] <- corrLineFit$coefficients[["X"]]
-    inputFile$slopeBackCorr[inputFile$eventID == currEventID] <- backLineFit$coefficients[["X"]]
+    try(inputFile$slopeRaw[inputFile$eventID == currEventID] <- rawLineFit$coefficients[["X"]], silent = TRUE)
+    try(inputFile$slopeClean[inputFile$eventID == currEventID] <- cleanLineFit$coefficients[["X"]], silent = TRUE)
+    try(inputFile$slopeSaltCorr[inputFile$eventID == currEventID] <- corrLineFit$coefficients[["X"]], silent = TRUE)
+    try(inputFile$slopeBackCorr[inputFile$eventID == currEventID] <- backLineFit$coefficients[["X"]], silent = TRUE)
   }
   return(inputFile)
 }

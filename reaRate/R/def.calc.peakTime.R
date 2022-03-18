@@ -82,13 +82,13 @@ def.calc.peakTime <- function(
   }
   
   
-  lowPlot <- ifelse(min(loggerDataTrimIn$spCond, na.rm = TRUE) > backgroundCond - 50,
+  lowPlot <- ifelse(min(loggerDataTrimIn$spCond, na.rm = TRUE) > backgroundCond - 200,
                     min(loggerDataTrimIn$spCond, na.rm = TRUE),
-                    backgroundCond - 50)
-  highPlot <- ifelse(max(loggerDataTrimIn$spCond, na.rm = TRUE) < backgroundCond + 50,
-                     backgroundCond + 50,
-                     max(loggerDataTrimIn$spCond, na.rm = TRUE))
-  #Not trimming at all based on background conductivity
+                    backgroundCond - 200)
+  highPlot <- ifelse(max(loggerDataTrimIn$spCond, na.rm = TRUE) < backgroundCond + 200,
+                     max(loggerDataTrimIn$spCond, na.rm = TRUE),
+                     backgroundCond + 200)
+  # #Not trimming at all based on background conductivity
   # lowPlot <- min(loggerDataTrimIn$spCond, na.rm = TRUE)
   # highPlot <- max(loggerDataTrimIn$spCond, na.rm = TRUE)
 

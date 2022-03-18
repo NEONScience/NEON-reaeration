@@ -94,7 +94,7 @@ eventID = "eventID"
 stationToInjectionDistance = "stationToInjectionDistance"
 plateauGasConc = "plateauGasConc"
 corrPlatSaltConc = "corrPlatSaltConc"
-savePlotPath = plotPath
+savePlotPath = plotPathLossRates
 
 plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
                                         savePlotPath = plotPath)

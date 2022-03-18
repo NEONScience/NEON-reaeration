@@ -205,108 +205,8 @@ def.calc.trvl.time <- function(
     S3 <- paste(outputDF$siteID[i], "AOS.reaeration.station.03", sep = ".")
     S4 <- paste(outputDF$siteID[i], "AOS.reaeration.station.04", sep = ".")
     
-    #   #Background corrections now take place in the formatting code and users decide whether or not to use it as part of the inputs to this script
-    #   #Background correct salt samples, normalize gas concentration, and natural log transform the plateau gas concentrations
-    #   backSalt <- inputFile$backgroundSaltConc[inputFile$eventID == currEventID]
     backCond <- mean(inputFile[inputFile$eventID == currEventID, backCondIdx], na.rm = TRUE)
-    #   platSalt <- as.character(inputFile[inputFile$eventID == currEventID, plSaltIdx])
-    #   platGas <- as.character(inputFile[inputFile$eventID == currEventID, plGasIdx])
-    #   statDist <- inputFile[inputFile$eventID == currEventID, staDistIdx]
-    # 
-    #   #If the background values are below detection, just use 0
-    #   if(any(is.na(backSalt))){
-    #     backSalt[is.na(backSalt)] <- 0
-    #   }
-    # 
-    #   x <- NA
-    #   y <- NA
-    #   meanY <- NA
-    #   for(j in 1:length(statDist)){
-    #     currStart <- (j-1)*5
-    # 
-    #     currBack <- backSalt[j]
-    #     currPlatSalt <- as.numeric(strsplit(platSalt[j],"\\|")[[1]])
-    #     currPlatGas <- as.numeric(strsplit(platGas[j],"\\|")[[1]])
-    # 
-    #     # #Background correct plateau salt concentrations
-    #     # corrPlatSalt <- NA
-    #     # if(length(currPlatSalt)>0 && length(currBack)>0){
-    #     #   corrPlatSalt <- currPlatSalt-currBack
-    #     # }
-    # 
-    #     #Normalize plateau gas concentration to corrected plateau salt concentration
-    #     if(applySaltCorr){
-    #       normPlatGas <- NA
-    #       if(length(currPlatGas)>0 && length(currPlatSalt)>0 && any(!is.na(currPlatGas)) && any(!is.na(currPlatSalt)) && length(currPlatGas)==length(currPlatSalt)){
-    #         normPlatGas <- currPlatGas/currPlatSalt
-    #       }else{
-    #         print(paste0("Error in plat gas and plateau salt record counts for: ",currEventID))
-    #       }
-    #     }else{
-    #       normPlatGas <- currPlatGas
-    #     }
-    #     
-    # 
-    #     if(length(currPlatSalt)<1 || length(currBack)<1 || length(currPlatGas)<1 || all(is.na(currPlatGas)) || all(is.na(currPlatGas))){
-    #       print(paste0("Tracer data for station ",j,", eventID ",currEventID," not available."))
-    #       next
-    #     }
-    # 
-    #     if(min(normPlatGas, na.rm = T) <= 0 | min(currPlatSalt, na.rm = T) <= 0){
-    #       print("A gas concentration or background corrected salt concentration is zero or negative producing NaNs for LNgasNormalizedToSalt")
-    #     }
-    # 
-    #     normPlatGas[normPlatGas <= 0] <- NA
-    #     currPlatSalt[currPlatSalt <= 0] <- NA
-    # 
-    #     logNormPlatGas <- try(log(normPlatGas))
-    # 
-    #     numVals <- min(length(currPlatSalt),length(normPlatGas))
-    # 
-    #     x[(1+currStart):(numVals+currStart)] <- statDist[j]
-    #     y[(1+currStart):(numVals+currStart)] <- logNormPlatGas
-    #     meanY[j] <- log(mean(currPlatGas, na.rm = T)/mean(currPlatSalt, na.rm = T))
-    #   }
-    # 
-    #   #Calculate the Loss Rate, slope of the salt corrected SF6 over the reach
-    #   lineFit <- NA
-    #   #Warnings when there isn't data suppressed
-    #   suppressWarnings(try(lineFit <- lsfit(statDist,meanY), silent = T))
-    # 
-    #   if(sum(is.na(lineFit))){
-    #     print(paste0("Warning, loss rate could not be determined for ", currEventID))
-    #     next
-    #   }
-    # 
-    #   #Clean up y for plotting if there are Inf values
-    #   x <- x[!is.infinite(y)]
-    #   y <- y[!is.infinite(y)]
-    # 
-    #   try(outputDF$lossRateSF6[i] <- lineFit$coefficients[[2]], silent = T)
-    # 
-    #   if(plot == T & !all(is.na(x)) & !all(is.na(y))){
-    #     #Save out plot of loss rate to specified directory
-    #     if(!is.null(savePlotPath)){
-    #       png(paste0(savePlotPath,"/lossRate_",currEventID,".png"))
-    #       plot(x,y,main = currEventID, xlab = "meters downstream of injection", ylab = "LN(Tracer Gas/Background Corrected Tracer Salt)", col = "blue")
-    #       points(statDist,meanY, pch = 19)
-    #       abline(a = lineFit$coefficients[["Intercept"]], b = lineFit$coefficients[["X"]])
-    #       mtext(paste("y = ", lineFit$coefficients[[2]], "x +", lineFit$coefficients[[1]], "\n Click anywhere to close and continue"), cex = 0.8)
-    #       dev.off()
-    #     }
-    # 
-    #     invisible(dev.new(noRStudioGD = TRUE))
-    #     plot(x,y,main = currEventID, xlab = "meters downstream of injection", ylab = "LN(Tracer Gas/Background Corrected Tracer Salt)", col = "blue")
-    #     points(statDist,meanY, pch=19)
-    #     abline(a = lineFit$coefficients[["Intercept"]], b = lineFit$coefficients[["X"]])
-    #     mtext(paste("y = ", lineFit$coefficients[[2]], "x +", lineFit$coefficients[[1]], "\n Click anywhere to close and continue"), cex = 0.8)
-    #     #print("Click anywhere on the plot to close and continue")
-    #     ans <- identify(x, y, n = 1, tolerance = 100, plot = F)
-    # 
-    #     invisible(dev.off())
-    #   }
-    
-    
+
     #New section that requires the user to pick the range of data for the peak or plateau rising limb
     #currEventID <- currEventID
     s1LoggerData <- loggerData[loggerData$hoboSampleID == paste0(substr(currEventID, 1, 4), "_S1_", substr(currEventID, 6, 13)),]
@@ -469,7 +369,7 @@ def.calc.trvl.time <- function(
            ylim = c(minY,maxY),
            ylab = "Conductivity, uS",
            xlab = "Time (UTC)")
-      mtext(paste0("Travel Time = ",outputDF$peakMaxTravelTime[i]," seconds, (",round(as.numeric(outputDF$peakMaxTravelTime[i])/60,digits=1) ," min)\n Click anywhere to close and continue"), cex = 1.2)
+      mtext(paste0("Travel Time = ",outputDF$peakMaxTravelTime[i]," seconds, (",round(as.numeric(outputDF$peakMaxTravelTime[i])/60,digits=1) ," min)\n Click anywhere to close and continue\n", currEventID), cex = 1.2)
       points(condDataS4$dateTimeLogger[condDataS4$dateTimeLogger > s4peakLoc$startPlotTime & condDataS4$dateTimeLogger < s4peakLoc$endPlotTime],
              s4YData,
              col = "blue")
