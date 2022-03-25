@@ -76,7 +76,7 @@ bkgd.salt.conc.plot <- function(
        xlab = "Distance from Injection (m)",
        ylab = "Background Salt Concentration (ppm)",
        main = paste0(unique(inputFile$siteID), " - Date"),
-       ylim = c(0, yMax),
+       ylim = c(-1, yMax),
        xlim = c(xMin, xMax),
        col = theColors[colIdx],
        type = "b",

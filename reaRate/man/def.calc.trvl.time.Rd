@@ -13,7 +13,8 @@ def.calc.trvl.time(
   slopeRaw = "slopeRaw",
   slopeClean = "slopeClean",
   slopeSaltCorr = "slopeSaltCorr",
-  slopeBackCorr = "slopeBackCorr",
+  slopeNormClean = "slopeNormClean",
+  slopeNormCorr = "slopeNormCorr",
   stationToInjectionDistance = "stationToInjectionDistance",
   hoboSampleID = "hoboSampleID",
   slugPourTime = "slugPourTime",
@@ -49,8 +50,11 @@ SITE.YYYYMMDD for NEON [string]}
 \item{slopeSaltCorr}{Dataframe column name for SF6 slope from plateau salt corrected data 
 with outliers removed [string]}
 
-\item{slopeBackCorr}{Dataframe column name for SF6 slope from background corrected plateau 
-salt data with outliers removed [string]}
+\item{slopeNormClean}{Dataframe column name for normalized SF6 slope from data with 
+outliers removed [string]}
+
+\item{slopeNormCorr}{Dataframe column name for normalized SF6 slope from plateau salt 
+corrected data with outliers removed [string]}
 
 \item{stationToInjectionDistance}{Dataframe column name for distance from station to
 injection [string]}

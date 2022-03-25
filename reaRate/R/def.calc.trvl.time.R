@@ -37,8 +37,10 @@
 #' @param slopeClean Dataframe column name for SF6 slope from data with outliers removed [string]
 #' @param slopeSaltCorr Dataframe column name for SF6 slope from plateau salt corrected data 
 #' with outliers removed [string]
-#' @param slopeBackCorr Dataframe column name for SF6 slope from background corrected plateau 
-#' salt data with outliers removed [string]
+#' @param slopeNormClean Dataframe column name for normalized SF6 slope from data with 
+#' outliers removed [string]
+#' @param slopeNormCorr Dataframe column name for normalized SF6 slope from plateau salt 
+#' corrected data with outliers removed [string]
 #' @param stationToInjectionDistance Dataframe column name for distance from station to
 #' injection [string]
 #' @param hoboSampleID Dataframe column name for ID to link to conductivity timeseries data [string]
@@ -83,7 +85,8 @@ def.calc.trvl.time <- function(
   slopeRaw = 'slopeRaw',
   slopeClean = 'slopeClean',
   slopeSaltCorr = 'slopeSaltCorr',
-  slopeBackCorr = 'slopeBackCorr',
+  slopeNormClean = 'slopeNormClean',
+  slopeNormCorr = 'slopeNormCorr',
   stationToInjectionDistance = "stationToInjectionDistance",
   hoboSampleID = "hoboSampleID",
   slugPourTime = "slugPourTime",
@@ -106,7 +109,8 @@ def.calc.trvl.time <- function(
   slopeRawIdx <- which(names(inputFile) == slopeRaw)
   slopeCleanIdx <- which(names(inputFile) == slopeClean)
   slopeSaltCorrIdx <- which(names(inputFile) == slopeSaltCorr)
-  slopeBackCorrIdx <- which(names(inputFile) == slopeBackCorr)
+  slopeNormCleanIdx <- which(names(inputFile) == slopeNormClean)
+  slopeNormCorrIdx <- which(names(inputFile) == slopeNormCorr)
   staDistIdx <- which(names(inputFile) == stationToInjectionDistance)
   loggerIdx <- which(names(inputFile) == hoboSampleID)
   slugTimeIdx <- which(names(inputFile) == slugPourTime)
@@ -126,7 +130,8 @@ def.calc.trvl.time <- function(
     'slopeRaw',
     'slopeClean',
     'slopeSaltCorr',
-    'slopeBackCorr',
+    'slopeNormClean',
+    'slopeNormCorr',
     # 'noSaltCorrLossRateSF6',
     # 'platSaltCorrLossRateSF6',
     # 'backSaltCorrLossRateSF6',
@@ -401,7 +406,8 @@ def.calc.trvl.time <- function(
     try(outputDF$slopeRaw[i] <- unique(inputFile[inputFile[[eventIDIdx]] == currEventID, slopeRawIdx]))
     try(outputDF$slopeClean[i] <- unique(inputFile[inputFile[[eventIDIdx]] == currEventID, slopeCleanIdx]))
     try(outputDF$slopeSaltCorr[i] <- unique(inputFile[inputFile[[eventIDIdx]] == currEventID, slopeSaltCorrIdx]))
-    try(outputDF$slopeBackCorr[i] <- unique(inputFile[inputFile[[eventIDIdx]] == currEventID, slopeBackCorrIdx]))
+    try(outputDF$slopeNormClean[i] <- unique(inputFile[inputFile[[eventIDIdx]] == currEventID, slopeNormCleanIdx]))
+    try(outputDF$slopeNormCorr[i] <- unique(inputFile[inputFile[[eventIDIdx]] == currEventID, slopeNormCorrIdx]))
     
   }
   

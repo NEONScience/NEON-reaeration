@@ -65,6 +65,8 @@
 #     original creation
 #   Kaelin M. Cawley (2022-02-11)
 #     updated to work with cleaned data columns
+#   Kaelin M. Cawley (2022-03-21)
+#     updated to remove the non-background corrected salt
 ##############################################################################################
 #This code is for calculating reaeration rates and Schmidt numbers
 gas.loss.rate.plot <- function(
@@ -79,10 +81,17 @@ gas.loss.rate.plot <- function(
 
   #Remove all model injections since they don't have gas tracer data
   inputFile <- inputFile[inputFile$injectionType %in% c("NaCl", "NaBr"),]
+  
   inputFile$slopeRaw <- NA
   inputFile$slopeClean <- NA
   inputFile$slopeSaltCorr <- NA
-  inputFile$slopeBackCorr <- NA
+  inputFile$slopeNormClean <- NA
+  inputFile$slopeNormCorr <- NA
+  
+  inputFile$logNormGasClean <- NA
+  inputFile$logNormGasCorr <- NA
+  inputFile$normGasClean <- NA
+  inputFile$normGasCorr <- NA
 
   for(currEventID in unique(inputFile$eventID)){
 
@@ -113,16 +122,12 @@ gas.loss.rate.plot <- function(
     platGas <- as.character(inputFile$plateauGasConc[inputFile$eventID == currEventID])
     platGasY <- NULL
     platGasX <- NULL
-    platGasSaltCorrY <- NULL
     platGasBackSaltCorrY <- NULL
     
     platGasClean <- as.character(inputFile$plateauGasConcClean[inputFile$eventID == currEventID])
     platGasYClean <- NULL
     platGasXClean <- NULL
-    platGasSaltCorrYClean <- NULL
     platGasBackSaltCorrYClean <- NULL
-    
-    
 
     #Create the data for plotting
     for(currStat in seq(along = stations)){
@@ -150,16 +155,8 @@ gas.loss.rate.plot <- function(
       platGasYClean <- c(platGasYClean, platGasToAddClean)
       platGasXClean <- c(platGasXClean, statDistToAddGasClean)
       
-      platGasSaltCorrToAdd <- platGasToAddClean/mean(platSaltToAddClean, na.rm = TRUE)
       platGasBackSaltCorrToAdd <- platGasToAddClean/(mean(platSaltToAddClean, na.rm = TRUE) - backSaltY[currStat])
-      platGasSaltCorrY <- c(platGasSaltCorrY, platGasSaltCorrToAdd)
       platGasBackSaltCorrY <- c(platGasBackSaltCorrY, platGasBackSaltCorrToAdd)
-      
-      # if(grepl("unmixedSaltStation",mixStatus[currStat])){
-      #   saltCol <- c(saltCol,rep("grey21",length(platSaltToAdd)))
-      # }else{
-      #   saltCol <- c(saltCol,rep("grey61",length(platSaltToAdd)))
-      # }
       
       if(grepl("unmixedSaltStation",mixStatus[currStat])){
         saltColClean <- c(saltColClean,rep("darkblue",length(platSaltToAddClean)))
@@ -172,6 +169,7 @@ gas.loss.rate.plot <- function(
       }else{
         gasColClean <- c(gasColClean,rep("purple",length(platGasToAddClean)))
       }
+      
     }
 
     #Skip the site if there isn't any salt data
@@ -180,45 +178,8 @@ gas.loss.rate.plot <- function(
     }
 
     #Plot the salt background and plateau data
-    # backRange <- c(min(backSaltY, na.rm = TRUE),
-    #                max(backSaltY, na.rm = TRUE) * 5)
-    # minPlat <- min(platSaltYCorr,platSaltY, na.rm = TRUE)
-    # maxPlat <- max(platSaltYCorr,platSaltY, na.rm = TRUE)
     saltRange <- c(min(backSaltY, platSaltY, platSaltYCorr, na.rm = TRUE),
                    max(backSaltY, platSaltY, platSaltYCorr, na.rm = TRUE))
-    #It just doesn't seem to look right in the rstudio plots
-    # par(mar = c(4, 4, 7, 4) + 0.55)
-    # plot(backSaltX,
-    #      backSaltY,
-    #      xlab = "Distance from Injection (m)",
-    #      ylab = "Background Salt Concentration (ppm)",
-    #      main = paste0(currEventID, " (", currQ, " lps)"),
-    #      ylim = saltRange,
-    #      pch = 19,
-    #      col = c("magenta"))
-    # par(new = TRUE)
-    # plot(platSaltX,
-    #      platSaltY,
-    #      axes = FALSE,
-    #      xlab = "",
-    #      ylab = "",
-    #      col = "red",
-    #      pch = 4,
-    #      cex = 1.5,
-    #      ylim = saltRange)
-    # axis(side = 4, at = pretty(saltRange))
-    # mtext("Plateau Salt Concentrations (ppm)", side = 4, line = 3)
-    # points(platSaltXClean,platSaltYClean,col = saltColClean, pch = 18, cex = 2)
-    # points(platSaltXClean, platSaltYCorrClean, col = "green", pch = 19)
-    # 
-    # #Add lengend at the top
-    # graphics::legend(x = "topright",
-    #                  inset = c(-0.17,-0.28),
-    #                  xpd = TRUE,
-    #                  legend = c("Background","Plateau - all","Plateau Clean - mixed","Plateau Clean - unmixed","Corrected"),
-    #                  col = c("magenta","red","deepskyblue3","darkblue","green"),
-    #                  pch = c(19,4,18,18,19),
-    #                  cex = c(0.9,0.9,0.9,0.9,0.9))
 
     if(length(backSaltY) < 1 | length(platSaltY) < 1 | length(platSaltYClean) < 1 | length(platSaltYCorrClean) < 1){
       print(paste0("Skipping plots for salt due to length(0): ", currEventID))
@@ -271,68 +232,23 @@ gas.loss.rate.plot <- function(
     logPlatGasYClean <- log(platGasYClean)
     platGasXforYClean <- platGasXClean[!is.infinite(logPlatGasYClean)]
     logPlatGasYClean <- logPlatGasYClean[!is.infinite(logPlatGasYClean)]
-
-    logPlatGasSaltCorrY <- log(platGasSaltCorrY)
-    platGasXforSaltCorrY <- platGasXClean[!is.infinite(logPlatGasSaltCorrY)]
-    logPlatGasSaltCorrY <- logPlatGasSaltCorrY[!is.infinite(logPlatGasSaltCorrY)]
     
     logPlatGasBackSaltCorrY <- log(platGasBackSaltCorrY)
     platGasXforBackSaltCorrY <- platGasXClean[!is.infinite(logPlatGasBackSaltCorrY)]
     logPlatGasBackSaltCorrY <- logPlatGasBackSaltCorrY[!is.infinite(logPlatGasBackSaltCorrY)]
+    
+    logNormGasClean <- log(platGasYClean/max(platGasYClean, na.rm = TRUE))
+    platGasXforNormClean <- platGasXClean[!is.infinite(logNormGasClean)]
+    logNormGasClean <- logNormGasClean[!is.infinite(logNormGasClean)]
+    
+    logNormGasCorr <- log(platGasBackSaltCorrY/max(platGasBackSaltCorrY, na.rm = TRUE))
+    platGasXforNormCorr <- platGasXClean[!is.infinite(logNormGasCorr)]
+    logNormGasCorr <- logNormGasCorr[!is.infinite(logNormGasCorr)]
 
-    gasRange <- c(min(logPlatGasY,logPlatGasYClean,logPlatGasSaltCorrY,logPlatGasBackSaltCorrY, na.rm = TRUE),
-                  max(logPlatGasY,logPlatGasYClean,logPlatGasSaltCorrY,logPlatGasBackSaltCorrY, na.rm = TRUE))
-    # par(mar = c(7, 4, 4, 4) + 0.3)
-    # plot(platGasXforY,
-    #      logPlatGasY,
-    #      xlab = "Distance from Injection (m)",
-    #      ylab = "Gas Concentration log(ppmv)",
-    #      ylim = gasRange,
-    #      main = paste0(currEventID, " (", currQ, " lps)"),
-    #      pch = 4,
-    #      col = "red")
-    # par(new = TRUE)
-    # plot(platGasXforSaltCorrY,
-    #      logPlatGasSaltCorrY,
-    #      axes = FALSE,
-    #      xlab = "",
-    #      ylab = "",
-    #      ylim = gasRange,
-    #      col = "cyan",
-    #      pch = 19)
-    # axis(side = 4, at = pretty(gasRange))
-    # mtext("Salt Corrected Gas log(ppmv/ppm)", side = 4, line = 3)
-    # points(platGasXforYClean, logPlatGasYClean, col = "purple", pch = 18)
-    # points(platGasXforBackSaltCorrY, logPlatGasBackSaltCorrY, col = "orange", pch = 1)
-    # 
-    # try(rawLineFit <- lsfit(platGasX,logPlatGasY), silent = T)
-    # rawSlope <- rawLineFit$coefficients[["X"]]
-    # try(cleanLineFit <- lsfit(platGasXClean,logPlatGasYClean), silent = T)
-    # cleanSlope <- cleanLineFit$coefficients[["X"]]
-    # try(corrLineFit <- lsfit(platGasX,logPlatGasSaltCorrY), silent = T)
-    # corrSlope <- corrLineFit$coefficients[["X"]]
-    # try(backLineFit <- lsfit(platGasX,logPlatGasBackSaltCorrY), silent = T)
-    # backSlope <- backLineFit$coefficients[["X"]]
-    # 
-    # abline(a = rawLineFit$coefficients[["Intercept"]], b = rawLineFit$coefficients[["X"]], col = "red")
-    # abline(a = cleanLineFit$coefficients[["Intercept"]], b = cleanLineFit$coefficients[["X"]], col = "purple")
-    # abline(a = corrLineFit$coefficients[["Intercept"]], b = corrLineFit$coefficients[["X"]], col = "cyan")
-    # abline(a = backLineFit$coefficients[["Intercept"]], b = backLineFit$coefficients[["X"]], col = "orange")
-    # 
-    # #Add legend at the top
-    # graphics::legend(x = "bottom",
-    #        inset = c(-0.1,-0.35),
-    #        xpd = TRUE,
-    #        legend = c(paste0("Raw Gas ", signif(rawLineFit$coefficients[["X"]], 3)),
-    #                   paste0("Clean gas ", signif(corrLineFit$coefficients[["X"]], 3)),
-    #                   paste0("Plateau Corrected ", signif(corrLineFit$coefficients[["X"]], 3)),
-    #                   paste0("Background Corrected ", signif(backLineFit$coefficients[["X"]], 3))),
-    #        col = c("red","purple","cyan","orange"),
-    #        pch = c(4,19,18,1),
-    #        cex = c(0.9,0.9,0.9,0.9),
-    #        horiz = TRUE)
+    gasRange <- c(min(logPlatGasY,logPlatGasYClean,logPlatGasBackSaltCorrY,logNormGasClean,logNormGasCorr, na.rm = TRUE),
+                  max(logPlatGasY,logPlatGasYClean,logPlatGasBackSaltCorrY,logNormGasClean,logNormGasCorr, na.rm = TRUE))
 
-    if(length(logPlatGasY) < 1 | length(logPlatGasSaltCorrY) < 1 | length(logPlatGasYClean) < 1 | length(logPlatGasBackSaltCorrY) < 1){
+    if(length(logPlatGasY) < 1 | length(logPlatGasYClean) < 1 | length(logPlatGasBackSaltCorrY) < 1){
       print(paste0("Skipping plots for gas due to length(0): ", currEventID))
       next
     }
@@ -349,32 +265,42 @@ gas.loss.rate.plot <- function(
            pch = 4,
            col = "red")
       par(new = TRUE)
-      plot(platGasXforSaltCorrY,
-           logPlatGasSaltCorrY,
+      plot(platGasXforBackSaltCorrY,
+           logPlatGasBackSaltCorrY,
            axes = FALSE,
            xlab = "",
            ylab = "",
            ylim = gasRange,
-           col = "cyan",
-           pch = 19)
+           col = "orange",
+           pch = 1)
       axis(side = 4, at = pretty(gasRange))
       mtext("Salt Corrected Gas log(ppmv/ppm)", side = 4, line = 3)
       points(platGasXforYClean, logPlatGasYClean, col = gasColClean, pch = 18)
-      points(platGasXforBackSaltCorrY, logPlatGasBackSaltCorrY, col = "orange", pch = 1)
+      
+      #Adding the normalized data as well
+      points(platGasXforNormClean, logNormGasClean, col = "cyan")
+      points(platGasXforNormCorr, logNormGasCorr, col = "green", pch = 1)
       
       try(rawLineFit <- lsfit(platGasXforY,logPlatGasY), silent = T)
       try(rawSlope <- rawLineFit$coefficients[["X"]], silent = T)
+      
       try(cleanLineFit <- lsfit(platGasXforYClean,logPlatGasYClean), silent = T)
       try(cleanSlope <- cleanLineFit$coefficients[["X"]], silent = T)
-      try(corrLineFit <- lsfit(platGasXforSaltCorrY,logPlatGasSaltCorrY), silent = T)
-      try(corrSlope <- corrLineFit$coefficients[["X"]], silent = T)
+      
       try(backLineFit <- lsfit(platGasXforBackSaltCorrY,logPlatGasBackSaltCorrY), silent = T)
       try(backSlope <- backLineFit$coefficients[["X"]], silent = T)
       
+      try(normCleanLineFit <- lsfit(platGasXforNormClean,logNormGasClean), silent = T)
+      try(normCleanSlope <- normCleanLineFit$coefficients[["X"]], silent = T)
+      
+      try(normCorrLineFit <- lsfit(platGasXforNormCorr,logNormGasCorr), silent = T)
+      try(normCorrSlope <- normCorrLineFit$coefficients[["X"]], silent = T)
+      
       try(abline(a = rawLineFit$coefficients[["Intercept"]], b = rawLineFit$coefficients[["X"]], col = "red"), silent = T)
       try(abline(a = cleanLineFit$coefficients[["Intercept"]], b = cleanLineFit$coefficients[["X"]], col = "purple"), silent = T)
-      try(abline(a = corrLineFit$coefficients[["Intercept"]], b = corrLineFit$coefficients[["X"]], col = "cyan"), silent = T)
       try(abline(a = backLineFit$coefficients[["Intercept"]], b = backLineFit$coefficients[["X"]], col = "orange"), silent = T)
+      try(abline(a = normCleanLineFit$coefficients[["Intercept"]], b = normCleanLineFit$coefficients[["X"]], col = "cyan"), silent = T)
+      try(abline(a = normCorrLineFit$coefficients[["Intercept"]], b = normCorrLineFit$coefficients[["X"]], col = "green"), silent = T)
       
       if(exists("rawLineFit")){
         rawLineFitForPlot <- signif(rawLineFit$coefficients[["X"]], 3)
@@ -388,16 +314,22 @@ gas.loss.rate.plot <- function(
         cleanLineFitForPlot <- NA
       }
       
-      if(exists("corrLineFit")){
-        corrLineFitForPlot <- signif(corrLineFit$coefficients[["X"]], 3)
-      }else{
-        corrLineFitForPlot <- NA
-      }
-      
       if(exists("backLineFit")){
         backLineFitForPlot <- signif(backLineFit$coefficients[["X"]], 3)
       }else{
         backLineFitForPlot <- NA
+      }
+      
+      if(exists("normCleanLineFit")){
+        normCleanForPlot <- signif(normCleanLineFit$coefficients[["X"]], 3)
+      }else{
+        normCleanForPlot <- NA
+      }
+      
+      if(exists("normCorrLineFit")){
+        normCorrFitForPlot <- signif(normCorrLineFit$coefficients[["X"]], 3)
+      }else{
+        normCorrFitForPlot <- NA
       }
       
       #Add legend at the top
@@ -407,18 +339,32 @@ gas.loss.rate.plot <- function(
                        legend = c(paste0("Raw Gas ", rawLineFitForPlot),
                                   paste0("Clean gas - Mixed ", cleanLineFitForPlot),
                                   paste0("Clean gas - Unmixed ", cleanLineFitForPlot),
-                                  paste0("Plateau Corrected ", corrLineFitForPlot),
-                                  paste0("Background Corrected ", backLineFitForPlot)),
-                       col = c("red","purple","purple4","cyan","orange"),
-                       pch = c(4,19,19,18,1),
-                       cex = c(0.9,0.9,0.9,0.9,0.9))
+                                  paste0("Salt Corrected ", backLineFitForPlot),
+                                  paste0("Normalized Clean ", normCleanForPlot),
+                                  paste0("Normalized Salt Corr ", normCorrFitForPlot)),
+                       col = c("red","purple","purple4","orange", "cyan","green"),
+                       pch = c(4,19,19,1,1,1),
+                       cex = c(0.9,0.9,0.9,0.9,0.9,0.9))
       dev.off()
     }
 
     try(inputFile$slopeRaw[inputFile$eventID == currEventID] <- rawLineFit$coefficients[["X"]], silent = TRUE)
     try(inputFile$slopeClean[inputFile$eventID == currEventID] <- cleanLineFit$coefficients[["X"]], silent = TRUE)
-    try(inputFile$slopeSaltCorr[inputFile$eventID == currEventID] <- corrLineFit$coefficients[["X"]], silent = TRUE)
-    try(inputFile$slopeBackCorr[inputFile$eventID == currEventID] <- backLineFit$coefficients[["X"]], silent = TRUE)
+    try(inputFile$slopeSaltCorr[inputFile$eventID == currEventID] <- backLineFit$coefficients[["X"]], silent = TRUE)
+    
+    # Populate normalized SF6 slopes and gas values
+    allDist <- inputFile$stationToInjectionDistance[inputFile$eventID == currEventID]
+    for(idx in allDist){
+      inputFile$logNormGasClean[inputFile$eventID == currEventID & inputFile$stationToInjectionDistance == idx] <- paste(logNormGasClean[platGasXforNormClean == idx], collapse = "|")
+      inputFile$logNormGasCorr[inputFile$eventID == currEventID & inputFile$stationToInjectionDistance == idx] <- paste(logNormGasCorr[platGasXforNormCorr == idx], collapse = "|")
+      
+      inputFile$normGasClean[inputFile$eventID == currEventID & inputFile$stationToInjectionDistance == idx] <- paste(exp(logNormGasClean[platGasXforNormClean == idx]), collapse = "|")
+      inputFile$normGasCorr[inputFile$eventID == currEventID & inputFile$stationToInjectionDistance == idx] <- paste(exp(logNormGasCorr[platGasXforNormCorr == idx]), collapse = "|")
+    }
+    try(inputFile$slopeNormClean[inputFile$eventID == currEventID] <- normCleanLineFit$coefficients[["X"]], silent = TRUE)
+    try(inputFile$slopeNormCorr[inputFile$eventID == currEventID] <- normCorrLineFit$coefficients[["X"]], silent = TRUE)
+    
   }
+
   return(inputFile)
 }
