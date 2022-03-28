@@ -67,6 +67,8 @@
 #     updated to work with cleaned data columns
 #   Kaelin M. Cawley (2022-03-21)
 #     updated to remove the non-background corrected salt
+#   Kaelin M. Cawley (2022-03-07)
+#     updated to add averaging and normalization to support modeling
 ##############################################################################################
 #This code is for calculating reaeration rates and Schmidt numbers
 gas.loss.rate.plot <- function(
@@ -88,10 +90,18 @@ gas.loss.rate.plot <- function(
   inputFile$slopeNormClean <- NA
   inputFile$slopeNormCorr <- NA
   
+  inputFile$meanCleanCorrSalt <- NA
+  inputFile$meanCleanGas <- NA
+  
   inputFile$logNormGasClean <- NA
   inputFile$logNormGasCorr <- NA
   inputFile$normGasClean <- NA
   inputFile$normGasCorr <- NA
+  
+  inputFile$highDwnStrConcFlgClean <- NA
+  inputFile$lowStOneFlagClean <- NA
+  inputFile$highDwnStrConcFlgCorr <- NA
+  inputFile$lowStOneFlagCorr <- NA
 
   for(currEventID in unique(inputFile$eventID)){
 
@@ -128,8 +138,13 @@ gas.loss.rate.plot <- function(
     platGasYClean <- NULL
     platGasXClean <- NULL
     platGasBackSaltCorrYClean <- NULL
+    
+    meanSaltForPlots <- NULL
+    distForMeans <- NULL
+    meanGasForPlots <- NULL
 
     #Create the data for plotting
+    statIdx <- 1
     for(currStat in seq(along = stations)){
       platSaltToAdd <- as.numeric(strsplit(platSalt[currStat],"\\|")[[1]])
       statDistToAddSalt <- rep(backSaltX[currStat],length(platSaltToAdd))
@@ -144,6 +159,11 @@ gas.loss.rate.plot <- function(
       platSaltYClean <- c(platSaltYClean, platSaltToAddClean)
       platSaltXClean <- c(platSaltXClean, statDistToAddSaltClean)
       platSaltYCorrClean <- c(platSaltYCorrClean, corrSaltToAddClean)
+      
+      meanSaltForPlotsToAdd <- mean(corrSaltToAddClean, na.rm = TRUE)
+      meanSaltForPlots <- c(meanSaltForPlotsToAdd, meanSaltForPlots)
+      distForMeans <- c(backSaltX[currStat], distForMeans)
+      inputFile$meanCleanCorrSalt[inputFile$eventID == currEventID & inputFile$namedLocation == stations[statIdx]] <- meanSaltForPlotsToAdd
 
       platGasToAdd <- as.numeric(strsplit(platGas[currStat],"\\|")[[1]])
       statDistToAddGas <- rep(backSaltX[currStat],length(platGasToAdd))
@@ -154,6 +174,10 @@ gas.loss.rate.plot <- function(
       statDistToAddGasClean <- rep(backSaltX[currStat],length(platGasToAddClean))
       platGasYClean <- c(platGasYClean, platGasToAddClean)
       platGasXClean <- c(platGasXClean, statDistToAddGasClean)
+      
+      meanGasForPlotsToAdd <- mean(platGasToAddClean, na.rm = TRUE)
+      meanGasForPlots <- c(meanGasForPlotsToAdd, meanGasForPlots)
+      inputFile$meanCleanGas[inputFile$eventID == currEventID & inputFile$namedLocation == stations[statIdx]] <- meanGasForPlotsToAdd
       
       platGasBackSaltCorrToAdd <- platGasToAddClean/(mean(platSaltToAddClean, na.rm = TRUE) - backSaltY[currStat])
       platGasBackSaltCorrY <- c(platGasBackSaltCorrY, platGasBackSaltCorrToAdd)
@@ -169,7 +193,7 @@ gas.loss.rate.plot <- function(
       }else{
         gasColClean <- c(gasColClean,rep("purple",length(platGasToAddClean)))
       }
-      
+      statIdx <- statIdx + 1
     }
 
     #Skip the site if there isn't any salt data
@@ -237,12 +261,42 @@ gas.loss.rate.plot <- function(
     platGasXforBackSaltCorrY <- platGasXClean[!is.infinite(logPlatGasBackSaltCorrY)]
     logPlatGasBackSaltCorrY <- logPlatGasBackSaltCorrY[!is.infinite(logPlatGasBackSaltCorrY)]
     
-    logNormGasClean <- log(platGasYClean/max(platGasYClean, na.rm = TRUE))
-    platGasXforNormClean <- platGasXClean[!is.infinite(logNormGasClean)]
+    #In addition to normalizing here, also removed station 2 if it's higher than station 1
+    meanSaltInOrder <- meanSaltForPlots[order(distForMeans)]
+    meanCleanGasInOrder <- meanGasForPlots[order(distForMeans)]
+    
+    maxStatNumClean <- which(meanCleanGasInOrder == max(meanCleanGasInOrder))
+    xForMeanCleanGasInOrder <- distForMeans
+    if(maxStatNumClean == 2){
+      inputFile$lowStOneFlagClean[inputFile$eventID == currEventID] <- "Station 2 has max clean gas"
+      # Remove station 1 from the plotting and slope calculations
+      # Remove station 1 from the plotting and slope calculations
+      meanCleanGasInOrder <- meanCleanGasInOrder[2:length(meanCleanGasInOrder)]
+      xForMeanCleanGasInOrder <- distForMeans[2:length(distForMeans)]
+    }else if(maxStatNumClean != 1){
+      #Get rid of the whole experiment downstream probably so don't mess with the data here
+      inputFile$highDwnStrConcFlgClean[inputFile$eventID == currEventID] <- "Station 3 or 4 has max clean gas"
+    }
+    
+    meanCorrGasInOrder <- meanCleanGasInOrder/meanSaltInOrder
+    maxStatNumCorr <- which(meanCorrGasInOrder == max(meanCorrGasInOrder))
+    xForMeanCorrGasInOrder <- distForMeans
+    if(length(maxStatNumCorr) > 0 && maxStatNumCorr == 2){
+      inputFile$lowStOneFlagCorr[inputFile$eventID == currEventID] <- "Station 2 has max corr gas"
+      # Remove station 1 from the plotting and slope calculations
+      meanCorrGasInOrder <- meanCorrGasInOrder[2:length(meanCorrGasInOrder)]
+      xForMeanCorrGasInOrder <- distForMeans[2:length(distForMeans)]
+    }else if(length(maxStatNumCorr) > 0 && maxStatNumCorr != 1){
+      #Get rid of the whole experiment downstream probably so don't mess with the data here
+      inputFile$highDwnStrConcFlgCorr[inputFile$eventID == currEventID] <- "Station 3 or 4 has max corr gas"
+    }
+    
+    logNormGasClean <- log(meanCleanGasInOrder/max(meanCleanGasInOrder, na.rm = TRUE))
+    platGasXforNormClean <- xForMeanCleanGasInOrder[!is.infinite(logNormGasClean)]
     logNormGasClean <- logNormGasClean[!is.infinite(logNormGasClean)]
     
-    logNormGasCorr <- log(platGasBackSaltCorrY/max(platGasBackSaltCorrY, na.rm = TRUE))
-    platGasXforNormCorr <- platGasXClean[!is.infinite(logNormGasCorr)]
+    logNormGasCorr <- log(meanCorrGasInOrder/max(meanCorrGasInOrder, na.rm = TRUE))
+    platGasXforNormCorr <- xForMeanCorrGasInOrder[!is.infinite(logNormGasCorr)]
     logNormGasCorr <- logNormGasCorr[!is.infinite(logNormGasCorr)]
 
     gasRange <- c(min(logPlatGasY,logPlatGasYClean,logPlatGasBackSaltCorrY,logNormGasClean,logNormGasCorr, na.rm = TRUE),
