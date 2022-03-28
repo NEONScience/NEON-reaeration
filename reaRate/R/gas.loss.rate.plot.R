@@ -267,13 +267,13 @@ gas.loss.rate.plot <- function(
     
     maxStatNumClean <- which(meanCleanGasInOrder == max(meanCleanGasInOrder))
     xForMeanCleanGasInOrder <- distForMeans
-    if(maxStatNumClean == 2){
+    if(length(maxStatNumClean) > 0 && maxStatNumClean == 2){
       inputFile$lowStOneFlagClean[inputFile$eventID == currEventID] <- "Station 2 has max clean gas"
       # Remove station 1 from the plotting and slope calculations
       # Remove station 1 from the plotting and slope calculations
       meanCleanGasInOrder <- meanCleanGasInOrder[2:length(meanCleanGasInOrder)]
       xForMeanCleanGasInOrder <- distForMeans[2:length(distForMeans)]
-    }else if(maxStatNumClean != 1){
+    }else if(length(maxStatNumClean) > 0 && maxStatNumClean != 1){
       #Get rid of the whole experiment downstream probably so don't mess with the data here
       inputFile$highDwnStrConcFlgClean[inputFile$eventID == currEventID] <- "Station 3 or 4 has max clean gas"
     }
