@@ -266,13 +266,13 @@ gas.loss.rate.plot <- function(
     meanCleanGasInOrder <- meanGasForPlots[order(distForMeans)]
     
     maxStatNumClean <- which(meanCleanGasInOrder == max(meanCleanGasInOrder))
-    xForMeanCleanGasInOrder <- distForMeans
+    xForMeanCleanGasInOrder <- distForMeans[order(distForMeans)]
     if(length(maxStatNumClean) > 0 && maxStatNumClean == 2){
       inputFile$lowStOneFlagClean[inputFile$eventID == currEventID] <- "Station 2 has max clean gas"
       # Remove station 1 from the plotting and slope calculations
       # Remove station 1 from the plotting and slope calculations
       meanCleanGasInOrder <- meanCleanGasInOrder[2:length(meanCleanGasInOrder)]
-      xForMeanCleanGasInOrder <- distForMeans[2:length(distForMeans)]
+      xForMeanCleanGasInOrder <- xForMeanCleanGasInOrder[2:length(xForMeanCleanGasInOrder)]
     }else if(length(maxStatNumClean) > 0 && maxStatNumClean != 1){
       #Get rid of the whole experiment downstream probably so don't mess with the data here
       inputFile$highDwnStrConcFlgClean[inputFile$eventID == currEventID] <- "Station 3 or 4 has max clean gas"
@@ -280,12 +280,12 @@ gas.loss.rate.plot <- function(
     
     meanCorrGasInOrder <- meanCleanGasInOrder/meanSaltInOrder
     maxStatNumCorr <- which(meanCorrGasInOrder == max(meanCorrGasInOrder))
-    xForMeanCorrGasInOrder <- distForMeans
+    xForMeanCorrGasInOrder <- distForMeans[order(distForMeans)]
     if(length(maxStatNumCorr) > 0 && maxStatNumCorr == 2){
       inputFile$lowStOneFlagCorr[inputFile$eventID == currEventID] <- "Station 2 has max corr gas"
       # Remove station 1 from the plotting and slope calculations
       meanCorrGasInOrder <- meanCorrGasInOrder[2:length(meanCorrGasInOrder)]
-      xForMeanCorrGasInOrder <- distForMeans[2:length(distForMeans)]
+      xForMeanCorrGasInOrder <- xForMeanCorrGasInOrder[2:length(xForMeanCorrGasInOrder)]
     }else if(length(maxStatNumCorr) > 0 && maxStatNumCorr != 1){
       #Get rid of the whole experiment downstream probably so don't mess with the data here
       inputFile$highDwnStrConcFlgCorr[inputFile$eventID == currEventID] <- "Station 3 or 4 has max corr gas"
