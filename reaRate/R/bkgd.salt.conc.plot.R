@@ -47,7 +47,9 @@
 # changelog and author contributions / copyrights
 #   Kaelin M. Cawley (2022-02-26)
 #     original creation
-##############################################################################################
+#   Kaelin M. Cawley (2022-06-08)
+#     minor update for error messaging
+#########################################################################################
 #This code is for calculating reaeration rates and Schmidt numbers
 bkgd.salt.conc.plot <- function(
   inputFile = NULL,
@@ -56,6 +58,10 @@ bkgd.salt.conc.plot <- function(
 
   if(length(unique(inputFile$siteID)) > 1){
     stop("This function is still in development and can only handle one site at a time in the input file.")
+  }
+  
+  if("NaBr" %in% unique(inputFile$injectionType) | "NaCl" %in% unique(inputFile$injectionType)){
+    stop("This function is still in development and cannot make plots for model injection types. No injectionTypes include gas releases in the inputFile.")
   }
   
   # Make it cyberpunk

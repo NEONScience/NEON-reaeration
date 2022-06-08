@@ -32,56 +32,68 @@ def.calc.trvl.time(
 reaeration parameters. If the headers are named: "injectionType", "eventID",
 "stationToInjectionDistance", "plateauGasConc", "corrPlatSaltConc", "hoboSampleID",
 "wettedWidth", respectively, no other inputs are required. Otherwise, the names of the
-columns need to be input for the function to work. [string]}
+columns need to be input for the function to work. \link{character}}
 
-\item{loggerData}{User identified filename of logger data [string]}
+\item{loggerData}{User identified filename of logger data \link{character}}
 
-\item{namedLocation}{A string identifier for the station where data was collected [string]}
+\item{namedLocation}{A string identifier for the station where data was collected \link{character}}
 
-\item{injectionTypeName}{Either constant rate or slug [string]}
+\item{injectionTypeName}{Either constant rate or slug \link{character}}
 
 \item{eventID}{A string identifier to link records collected as part of the same experiment,
-SITE.YYYYMMDD for NEON [string]}
+SITE.YYYYMMDD for NEON \link{character}}
 
-\item{slopeRaw}{Dataframe column name for SF6 slope from raw data [string]}
+\item{slopeRaw}{Dataframe column name for SF6 slope from raw data \link{character}}
 
-\item{slopeClean}{Dataframe column name for SF6 slope from data with outliers removed [string]}
+\item{slopeClean}{Dataframe column name for SF6 slope from data with outliers removed \link{character}}
 
-\item{slopeSaltCorr}{Dataframe column name for SF6 slope from plateau salt corrected data 
-with outliers removed [string]}
+\item{slopeSaltCorr}{Dataframe column name for SF6 slope from plateau salt corrected data
+with outliers removed \link{character}}
 
-\item{slopeNormClean}{Dataframe column name for normalized SF6 slope from data with 
-outliers removed [string]}
+\item{slopeNormClean}{Dataframe column name for normalized SF6 slope from data with
+outliers removed \link{character}}
 
-\item{slopeNormCorr}{Dataframe column name for normalized SF6 slope from plateau salt 
-corrected data with outliers removed [string]}
+\item{slopeNormCorr}{Dataframe column name for normalized SF6 slope from plateau salt
+corrected data with outliers removed \link{character}}
 
 \item{stationToInjectionDistance}{Dataframe column name for distance from station to
-injection [string]}
+injection \link{character}}
 
-\item{hoboSampleID}{Dataframe column name for ID to link to conductivity timeseries data [string]}
+\item{hoboSampleID}{Dataframe column name for ID to link to conductivity timeseries data \link{character}}
 
-\item{slugPourTime}{Dataframe column name for dateTime when slug was poured [string]}
+\item{slugPourTime}{Dataframe column name for dateTime when slug was poured \link{character}}
 
-\item{dripStartTime}{Dataframe column name for dateTiem when drip was started [string]}
+\item{dripStartTime}{Dataframe column name for dateTiem when drip was started \link{character}}
 
-\item{meanBackgroundCond}{Dataframe column name for mean background specific conductance [string]}
+\item{meanBackgroundCond}{Dataframe column name for mean background specific conductance \link{character}}
 
-\item{discharge}{Dataframe column name for stream discharge in literPerSecond [string]}
+\item{discharge}{Dataframe column name for stream discharge in literPerSecond \link{character}}
 
-\item{waterTemp}{Dataframe column name for mean water temperature data [string]}
+\item{waterTemp}{Dataframe column name for mean water temperature data \link{character}}
 
-\item{wettedWidth}{Dataframe column name for mean wetted width for the stream reach [string]}
+\item{wettedWidth}{Dataframe column name for mean wetted width for the stream reach \link{character}}
 
 \item{plot}{User input to plot the SF6/corrected salt concentration versus distance downstream,
-defaults to TRUE [boolean]}
+defaults to TRUE \link{logical}}
 
-\item{savePlotPath}{If a user specifies a path the plots will be saved to this location [string]}
+\item{savePlotPath}{If a user specifies a path the plots will be saved to this location \link{character}}
 }
 \value{
 This function returns a list of two dataframes, the input dataframe of data for up to
 4 stations per site per date and an output dataframe appended with travel time and mean depth
-for a given site and date
+metrics for a given site and date. See table below for column headers and units for the appended
+outputs.\tabular{lll}{
+   \strong{columnName} \tab \strong{description} \tab \strong{units} \cr
+   S1PeakTime \tab Date and time of conductivity peak at upstream station \tab dateTime \cr
+   S4PeakTime \tab Date and time of conductivity peak at downstream station \tab dateTime \cr
+   peakMaxTravelTime \tab Difference in upstream and downstream peakTimes \tab second \cr
+   btwStaDist \tab Thalweg distance between most upstream and downstream stations \tab meter \cr
+   peakMaxVelocity \tab Stream velocity, ratio of btwStaDist and peakMaxTravelTime \tab metersPerSecond \cr
+   meanDepth \tab Mean stream depth, meanQ divided by peakMaxVelocity and meanWettedWidth \tab meter \cr
+   meanQ_lps \tab Mean stream discharge \tab litersPerSecond \cr
+   meanQ_cms \tab Mean stream discharge \tab cubicMetersPerSecond \cr
+   meanTemp \tab rmean stream temperature \tab celsius \cr
+}
 }
 \description{
 This function calculates travel time and mean depth from reaeration experiments.

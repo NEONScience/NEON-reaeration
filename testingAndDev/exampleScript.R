@@ -129,3 +129,84 @@ legend("topright",
        col = c("black", "blue"))
 
 
+##### This is an example for the model-slug only sites #####
+
+#User Inputs
+siteID <- "ARIK"
+plotPath <- paste0("~/reaOutputs/",siteID,"/QAQC_plots")
+
+#String constants
+reaDPID <- "DP1.20190.001"
+dscDPID <- "DP1.20048.001"
+wqDPID <- "DP1.20288.001"
+
+# # Download Reaeration Data (just delete the input for dates to get data for all time for a site)
+# reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID, 
+#                                              site = siteID,
+#                                              startdate = "2019-01-01", 
+#                                              enddate = "2021-12-01",
+#                                              check.size = FALSE)
+# 
+# rea_backgroundFieldCondDataIn <- reaInputList$rea_backgroundFieldCondData
+# rea_backgroundFieldSaltDataIn <- reaInputList$rea_backgroundFieldSaltData
+# rea_fieldDataIn <- reaInputList$rea_fieldData
+# rea_plateauMeasurementFieldDataIn <- reaInputList$rea_plateauMeasurementFieldData
+# rea_plateauSampleFieldDataIn <- reaInputList$rea_plateauSampleFieldData
+# rea_externalLabDataSaltIn <- reaInputList$rea_externalLabDataSalt
+# rea_externalLabDataGasIn <- reaInputList$rea_externalLabDataGas
+# rea_widthFieldDataIn <- reaInputList$rea_widthFieldData
+# 
+# # Download Discharge Data
+# qInputList <- neonUtilities::loadByProduct(dpID = dscDPID, site = siteID, check.size = FALSE)
+# 
+# dsc_fieldDataIn <- qInputList$dsc_fieldData
+# dsc_individualFieldDataIn <- qInputList$dsc_individualFieldData
+# dsc_fieldDataADCPIn <- qInputList$dsc_fieldDataADCP
+# 
+# # Download Sensor Data
+# sensorData <- neonUtilities::loadByProduct(dpID = wqDPID, 
+#                                            site = siteID,
+#                                            check.size = FALSE)
+# waq_instantaneousIn <- sensorData$waq_instantaneous
+# 
+# # It can take a while to download data, so save it in case you need to go back
+# save.image(paste0("~/reaOutputs/",siteID,"/downloadedData.RData")) 
+load(paste0("~/reaOutputs/",siteID,"/downloadedData.RData"))
+
+# Format the downloaded data so everything is in one table
+reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea_backgroundFieldCondDataIn,
+                                               rea_backgroundFieldSaltData = rea_backgroundFieldSaltDataIn,
+                                               rea_fieldData = rea_fieldDataIn,
+                                               rea_plateauMeasurementFieldData = rea_plateauMeasurementFieldDataIn,
+                                               rea_plateauSampleFieldData = rea_plateauSampleFieldDataIn,
+                                               rea_externalLabDataSalt = rea_externalLabDataSaltIn,
+                                               rea_externalLabDataGas = rea_externalLabDataGasIn,
+                                               rea_widthFieldData = rea_widthFieldDataIn,
+                                               dsc_fieldData = dsc_fieldDataIn,
+                                               dsc_individualFieldData = dsc_individualFieldDataIn,
+                                               dsc_fieldDataADCP = dsc_fieldDataADCPIn,
+                                               waq_instantaneous = waq_instantaneousIn)
+
+# Fix an issue with the data
+reaFormatted$namedLocation[reaFormatted$namedLocation == "ARIK.AOS.reaeration.station.02"] <- "ARIK.AOS.reaeration.station.04"
+
+# # Calculate SF6 loss rates (this should just give an error)
+# plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
+#                                         savePlotPath = plotPath)
+# 
+# # Take a look at the background data (this just produces an error now)
+# reaRate::bkgd.salt.conc.plot(inputFile = reaFormatted,
+#                              savePlotPath = plotPath)
+
+# Calculate travel times
+reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = reaFormatted,
+                                                loggerData = reaInputList$rea_conductivityFieldData,
+                                                meanBackgroundCond = "backgroundSensorCond",
+                                                plot = TRUE,
+                                                savePlotPath = plotPath)
+
+
+
+
+
+

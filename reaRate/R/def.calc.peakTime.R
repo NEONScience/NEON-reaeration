@@ -43,6 +43,8 @@
 #     original creation
 #   Kaelin M. Cawley (2021-05-25)
 #     updated to handle model injection types
+#   Kaelin M. Cawley (2022-06-08)
+#     minor update to help with plotting when there is no background conductivity
 ##############################################################################################
 def.calc.peakTime <- function(
   loggerDataIn,
@@ -85,7 +87,7 @@ def.calc.peakTime <- function(
   lowPlot <- ifelse(min(loggerDataTrimIn$spCond, na.rm = TRUE) > backgroundCond - 200,
                     min(loggerDataTrimIn$spCond, na.rm = TRUE),
                     backgroundCond - 200)
-  highPlot <- ifelse(max(loggerDataTrimIn$spCond, na.rm = TRUE) < backgroundCond + 200,
+  highPlot <- ifelse(max(loggerDataTrimIn$spCond, na.rm = TRUE) > backgroundCond + 200,
                      max(loggerDataTrimIn$spCond, na.rm = TRUE),
                      backgroundCond + 200)
   # #Not trimming at all based on background conductivity

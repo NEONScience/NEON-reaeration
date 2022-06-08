@@ -69,6 +69,8 @@
 #     updated to remove the non-background corrected salt
 #   Kaelin M. Cawley (2022-03-07)
 #     updated to add averaging and normalization to support modeling
+#   Kaelin M. Cawley (2022-06-08)
+#     minor update for error messaging
 ##############################################################################################
 #This code is for calculating reaeration rates and Schmidt numbers
 gas.loss.rate.plot <- function(
@@ -83,6 +85,9 @@ gas.loss.rate.plot <- function(
 
   #Remove all model injections since they don't have gas tracer data
   inputFile <- inputFile[inputFile$injectionType %in% c("NaCl", "NaBr"),]
+  if(nrow(inputFile) == 0){
+    stop('Gas loss rate plots cannot be made for the inputFile. No injectionTypes include gas releases.')
+  }
   
   inputFile$slopeRaw <- NA
   inputFile$slopeClean <- NA

@@ -27,36 +27,51 @@
 #' reaeration parameters. If the headers are named: "injectionType", "eventID",
 #' "stationToInjectionDistance", "plateauGasConc", "corrPlatSaltConc", "hoboSampleID",
 #' "wettedWidth", respectively, no other inputs are required. Otherwise, the names of the
-#' columns need to be input for the function to work. [string]
-#' @param loggerData User identified filename of logger data [string]
-#' @param namedLocation A string identifier for the station where data was collected [string]
-#' @param injectionTypeName Either constant rate or slug [string]
+#' columns need to be input for the function to work. [character]
+#' @param loggerData User identified filename of logger data [character]
+#' @param namedLocation A string identifier for the station where data was collected [character]
+#' @param injectionTypeName Either constant rate or slug [character]
 #' @param eventID A string identifier to link records collected as part of the same experiment,
-#' SITE.YYYYMMDD for NEON [string]
-#' @param slopeRaw Dataframe column name for SF6 slope from raw data [string]
-#' @param slopeClean Dataframe column name for SF6 slope from data with outliers removed [string]
+#' SITE.YYYYMMDD for NEON [character]
+#' @param slopeRaw Dataframe column name for SF6 slope from raw data [character]
+#' @param slopeClean Dataframe column name for SF6 slope from data with outliers removed [character]
 #' @param slopeSaltCorr Dataframe column name for SF6 slope from plateau salt corrected data 
-#' with outliers removed [string]
+#' with outliers removed [character]
 #' @param slopeNormClean Dataframe column name for normalized SF6 slope from data with 
-#' outliers removed [string]
+#' outliers removed [character]
 #' @param slopeNormCorr Dataframe column name for normalized SF6 slope from plateau salt 
-#' corrected data with outliers removed [string]
+#' corrected data with outliers removed [character]
 #' @param stationToInjectionDistance Dataframe column name for distance from station to
-#' injection [string]
-#' @param hoboSampleID Dataframe column name for ID to link to conductivity timeseries data [string]
-#' @param slugPourTime Dataframe column name for dateTime when slug was poured [string]
-#' @param dripStartTime Dataframe column name for dateTiem when drip was started [string]
-#' @param meanBackgroundCond Dataframe column name for mean background specific conductance [string]
-#' @param discharge Dataframe column name for stream discharge in literPerSecond [string]
-#' @param waterTemp Dataframe column name for mean water temperature data [string]
-#' @param wettedWidth Dataframe column name for mean wetted width for the stream reach [string]
+#' injection [character]
+#' @param hoboSampleID Dataframe column name for ID to link to conductivity timeseries data [character]
+#' @param slugPourTime Dataframe column name for dateTime when slug was poured [character]
+#' @param dripStartTime Dataframe column name for dateTiem when drip was started [character]
+#' @param meanBackgroundCond Dataframe column name for mean background specific conductance [character]
+#' @param discharge Dataframe column name for stream discharge in literPerSecond [character]
+#' @param waterTemp Dataframe column name for mean water temperature data [character]
+#' @param wettedWidth Dataframe column name for mean wetted width for the stream reach [character]
 #' @param plot User input to plot the SF6/corrected salt concentration versus distance downstream,
-#' defaults to TRUE [boolean]
-#' @param savePlotPath If a user specifies a path the plots will be saved to this location [string]
+#' defaults to TRUE [logical]
+#' @param savePlotPath If a user specifies a path the plots will be saved to this location [character]
 
 #' @return This function returns a list of two dataframes, the input dataframe of data for up to
 #' 4 stations per site per date and an output dataframe appended with travel time and mean depth
-#' for a given site and date
+#' metrics for a given site and date. See table below for column headers and units for the appended
+#' outputs.
+#'
+#' | **columnName** | **description** | **units** |
+#' | ---------- |-----------  | ----- |
+#' | S1PeakTime | Date and time of conductivity peak at upstream station | dateTime |
+#' | S4PeakTime | Date and time of conductivity peak at downstream station | dateTime |
+#' | peakMaxTravelTime    | Difference in upstream and downstream peakTimes | second |
+#' | btwStaDist    | Thalweg distance between most upstream and downstream stations | meter |
+#' | peakMaxVelocity    | Stream velocity, ratio of btwStaDist and peakMaxTravelTime | metersPerSecond |
+#' | meanDepth    | Mean stream depth, meanQ divided by peakMaxVelocity and meanWettedWidth  | meter |
+#' | meanQ_lps    | Mean stream discharge | litersPerSecond |
+#' | meanQ_cms    | Mean stream discharge | cubicMetersPerSecond |
+#' | meanTemp    | rmean stream temperature | celsius |
+#' @md
+#' 
 
 #' @references
 #' License: GNU AFFERO GENERAL PUBLIC LICENSE Version 3, 19 November 2007
@@ -74,6 +89,8 @@
 # changelog and author contributions / copyrights
 #   Kaelin M. Cawley (2022-03-02)
 #     original creation
+#   Kaelin M. Cawley (2022-06-08)
+#     updates to documentation and better handling of issues with station ID
 ##############################################################################################
 #This code is for calculating reaeration rates and Schmidt numbers
 def.calc.trvl.time <- function(
@@ -390,11 +407,11 @@ def.calc.trvl.time <- function(
     
     #More calculations related to hydrology
     if(s2LoggerDeployed){
-      outputDF$btwStaDist[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] -
-        inputFile[inputFile[[namLocIdx]] == S2 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] # meters
+      try(outputDF$btwStaDist[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] -
+        inputFile[inputFile[[namLocIdx]] == S2 & inputFile[[eventIDIdx]] == currEventID, staDistIdx]) # meters
     }else{
-      outputDF$btwStaDist[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] -
-        inputFile[inputFile[[namLocIdx]] == S1 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] # meters
+      try(outputDF$btwStaDist[i] <- inputFile[inputFile[[namLocIdx]] == S4 & inputFile[[eventIDIdx]] == currEventID, staDistIdx] -
+        inputFile[inputFile[[namLocIdx]] == S1 & inputFile[[eventIDIdx]] == currEventID, staDistIdx]) # meters
     }
     outputDF$peakMaxVelocity[i] <- outputDF$btwStaDist[i]/as.numeric(outputDF$peakMaxTravelTime[i]) # m/s
     outputDF$meanQ_lps[i] <- mean(inputFile[inputFile[[eventIDIdx]] == currEventID, QIdx], na.rm = T) #lps
