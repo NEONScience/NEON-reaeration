@@ -17,7 +17,15 @@
 #     original creation
 #	Kaelin M. Cawley (2022-03-05)
 #	  updated to work with reaRate v1.0.0+
+# Kaelin M. Cawley (2023-09-28)
+#   testing for use with dataframes for the conductivity logger data
 ##############################################################################################
+# # Install neonUtilities from GitHub development repo
+# devtools::install_github(repo = "NEONScience/NEON-utilities", subdir = "neonUtilities", force = TRUE)
+
+# # Install neonUtilities from local location
+# setwd("~/GitHub/NEON-utilities")
+# devtools::install("neonUtilities")
 
 #User Inputs
 siteID <- "COMO"
@@ -34,6 +42,9 @@ reaInputList <- neonUtilities::loadByProduct(dpID = reaDPID,
                                              startdate = "2019-01-01", 
                                              enddate = "2021-12-01",
                                              check.size = FALSE)
+
+# # When using downloaded data
+# reaInputList <- neonUtilities::stackByTable('C:/Users/kcawley/Documents/dataFrameTesting/NEON_reaeration.zip', savepath='envt')
 
 rea_backgroundFieldCondDataIn <- reaInputList$rea_backgroundFieldCondData
 rea_backgroundFieldSaltDataIn <- reaInputList$rea_backgroundFieldSaltData
@@ -94,7 +105,7 @@ eventID = "eventID"
 stationToInjectionDistance = "stationToInjectionDistance"
 plateauGasConc = "plateauGasConc"
 corrPlatSaltConc = "corrPlatSaltConc"
-savePlotPath = plotPathLossRates
+savePlotPath = plotPath
 
 plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
                                         savePlotPath = plotPath)
@@ -109,6 +120,8 @@ reaRate::bkgd.salt.conc.plot(inputFile = plotsOut,
 # Calculate travel times
 inputFile = plotsOut
 loggerData = reaInputList$rea_conductivityFieldData
+loggerDataTest = merge(reaInputList$rea_conductivityFieldData, reaInputList$rea_conductivityRawData, 
+                   by.x="hoboSampleID", by.y="hoboSampleId")
 namedLocation = "namedLocation"
 injectionTypeName = "injectionType"
 eventID = "eventID"
@@ -130,7 +143,7 @@ plot = TRUE
 savePlotPath = plotPath
 
 reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = plotsOut,
-                                                loggerData = reaInputList$rea_conductivityFieldData,
+                                                loggerData = loggerDataTest,
                                                 plot = TRUE,
                                                 savePlotPath = plotPath)
 
