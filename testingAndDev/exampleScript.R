@@ -88,8 +88,14 @@ reaRate::bkgd.salt.conc.plot(inputFile = plotsOut,
                              savePlotPath = plotPath)
 
 # Calculate travel times
+# The following should be used on RELEASE-2023 and earlier released data
+loggerDataCombined = reaInputList$rea_conductivityFieldData
+# The following should be used on provisional data after October 31, 2023 and RELEASE-2024 and later released data
+loggerDataCombined = merge(reaInputList$rea_conductivityFieldData, reaInputList$rea_conductivityRawData, 
+                           by.x="hoboSampleID", by.y="hoboSampleId")
+
 reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = plotsOut,
-                                                loggerData = reaInputList$rea_conductivityFieldData,
+                                                loggerData = loggerDataCombined,
                                                 plot = TRUE,
                                                 savePlotPath = plotPath)
 
@@ -97,7 +103,7 @@ reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = plotsOut,
 badEventIDs <- c("GUIL.20200812", "GUIL.20201216")
 reaFormattedTake2 <- reaRatesTrvlTime$inputFile[reaRatesTrvlTime$inputFile$eventID %in% badEventIDs,]
 reaRatesTrvlTimeTake2 <- reaRate::def.calc.trvl.time(inputFile = reaFormattedTake2,
-                                                     loggerData = reaInputList$rea_conductivityFieldData,
+                                                     loggerData = loggerDataCombined,
                                                      plot = TRUE,
                                                      savePlotPath = plotPath)
 reaRatesTrvlTimeAll <- rbind(reaRatesTrvlTime$outputDF[!reaRatesTrvlTime$outputDF$eventID %in% badEventIDs,],
@@ -200,7 +206,7 @@ reaFormatted$namedLocation[reaFormatted$namedLocation == "ARIK.AOS.reaeration.st
 
 # Calculate travel times
 reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = reaFormatted,
-                                                loggerData = reaInputList$rea_conductivityFieldData,
+                                                loggerData = loggerDataCombined,
                                                 meanBackgroundCond = "backgroundSensorCond",
                                                 plot = TRUE,
                                                 savePlotPath = plotPath)
