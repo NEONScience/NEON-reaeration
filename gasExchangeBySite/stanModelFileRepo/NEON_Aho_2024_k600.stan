@@ -1,0 +1,63 @@
+
+data {
+  int<lower = 1> N;
+  int<lower = 1> nexpt;
+  int<lower = 1> exptID[N];
+  vector[N] dist;
+  vector[N] logSf6;
+  vector[nexpt] Q;
+  vector[nexpt] V;
+  vector [nexpt] temp;
+  vector[nexpt] w; /// one value for each stream temp to convert to K600
+  
+}
+
+
+
+parameters {
+  vector [nexpt] logk600; // leaving little k, other stan should prob be K
+  real intercept; //very close to 0
+  real<lower = 0> sigma; //  standard deviation (within experiment)
+  real a; // real <lower = 0> a;
+  real b;
+  real <lower = 0> sigma_expt; //residual variation (among experiments)
+  
+  
+}
+
+transformed parameters{
+  
+  vector <lower=0> [nexpt] Kd; //per distance rate of gas exchange
+  vector <lower=0> [nexpt] ksf6;
+  
+  for (j in 1: nexpt){  // 
+  ksf6[j] = exp(logk600[j]) /  ((600/(3255.3-(217.13*temp[j])+(6.837*temp[j]^2)-(0.08607*temp[j]^3)))^-0.5);
+  }
+  Kd= ksf6.*w./Q;  // Kd = k / (v*z) = k * w / Q; units:
+
+  
+}
+
+model {
+  for (i in 1:N){
+    logSf6[i] ~ normal(intercept + -Kd[exptID[i]]*dist[i], sigma); // likelihood
+  }
+  
+  for (j in 1:nexpt){
+    logk600[j]~normal( a + b*log(Q[j]) , sigma_expt);
+  }
+  
+  a ~ normal(0.9,10); // was (0,10)
+  b ~ normal(0.2,1); //was (0,1), (0,2) works for COMO and GUIL, KING needs (-1,3)... (0,2)
+  sigma_expt ~ normal (0,2);
+  sigma ~ normal (0,0.2);  // added prior on sigma
+  intercept ~ normal (0, 0.1); // was (0, 0.1); working with proportions so strong prior on intercept
+}
+
+generated quantities {
+  vector[N] logSf6_tilde;
+  for (n in 1:N){
+    logSf6_tilde[n] = normal_rng(intercept + -Kd[exptID[n]]*dist[n], sigma);
+
+}
+}
