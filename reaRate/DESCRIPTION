@@ -1,37 +1,25 @@
 Package: reaRate
 Title: Reaeration Rate Calculations from Salt and/or Gas Injection Experiments
-Version: 1.0.15
+Version: 1.0.16
 Authors@R: person("Kaelin", "Cawley", email = "kcawley@battelleecology.org", role = c("aut", "cre"))
 Description: Contains functions to format data and calculate tracer gas loss
     rate, stream water travel time, oxygen reaeration rate coefficient, and Schmidt
     600 number.
 Depends:
     geoNEON,
-    R (>= 3.4.0),
+    R (>= 4.0.0),
     stageQCurve
 Imports:
     graphics,
     grDevices,
     methods,
-    outliers,
     pracma,
-    Rcpp (>= 0.12.0),
-    RcppParallel (>= 5.0.1),
-    rstan (>= 2.18.1),
-    rstantools (>= 2.2.0),
     stats,
     utils
 Remotes: NEONScience/NEON-stream-discharge/L4Discharge/stageQCurve, NEONScience/NEON-geolocation/geoNEON
 License: AGPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Biarch: true
-LinkingTo: 
-    BH (>= 1.66.0),
-    Rcpp (>= 0.12.0),
-    RcppEigen (>= 0.3.3.3.0),
-    RcppParallel (>= 5.0.1),
-    rstan (>= 2.18.1),
-    StanHeaders (>= 2.18.0)
 SystemRequirements: GNU make

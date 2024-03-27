@@ -215,33 +215,37 @@ def.format.reaeration <- function(
   # modelInjectionTypes <- c("model","model - slug","model - CRI")
   # outputDF <- outputDF[!outputDF$injectionType%in%modelInjectionTypes & !is.na(outputDF$injectionType),]
   
-  #Recalculate wading survey discharge using the stageQCurve package and then add to the output dataframe
-  dsc_fieldData_calc <- stageQCurve::conv.calc.Q(stageData = dsc_fieldData,
-                                                 dischargeData = dsc_individualFieldData)
+  # This is no longer needed since the finalDischarge field now contains the recalculated discharge values
+  # #Recalculate wading survey discharge using the stageQCurve package and then add to the output dataframe
+  # dsc_fieldData_calc <- stageQCurve::conv.calc.Q(stageData = dsc_fieldData,
+  #                                                dischargeData = dsc_individualFieldData)
   
   #Populate Q and stage from wading surveys
   for(i in unique(outputDF$eventID)){
     #print(i)
-    currQ <- dsc_fieldData_calc$calcQ[dsc_fieldData_calc$eventID == i]
+    currQ <- dsc_fieldData$finalDischarge[dsc_fieldData$eventID == i]
     try(outputDF$fieldDischarge_lps[outputDF$eventID == i] <- currQ, silent = T)
     
-    currStage <- dsc_fieldData_calc$streamStage[dsc_fieldData_calc$eventID == i]
+    currStage <- dsc_fieldData$streamStage[dsc_fieldData$eventID == i]
     try(outputDF$stage[outputDF$eventID == i] <- currStage, silent = T)
   }
   
   #Populate Q and stage from ADCP data, if applicable
-  for(i in unique(outputDF$eventID)){
-    #print(i)
-    currQ <- dsc_fieldDataADCP$totalDischarge[dsc_fieldDataADCP$eventID == i]
-    currQUnits <- dsc_fieldDataADCP$totalDischargeUnits[dsc_fieldDataADCP$eventID == i]
-    if(length(currQUnits) > 0 && currQUnits == "cubicMetersPerSecond"){
-      currQ <- currQ * 1000 # Convert to lps
+  if(exists('dsc_fieldDataADCP')){
+    for(i in unique(outputDF$eventID)){
+      #print(i)
+      currQ <- dsc_fieldDataADCP$totalDischarge[dsc_fieldDataADCP$eventID == i]
+      currQUnits <- dsc_fieldDataADCP$totalDischargeUnits[dsc_fieldDataADCP$eventID == i]
+      if(length(currQUnits) > 0 && currQUnits == "cubicMetersPerSecond"){
+        currQ <- currQ * 1000 # Convert to lps
+      }
+      try(outputDF$fieldDischarge_lps[outputDF$eventID == i] <- currQ, silent = T)
+      
+      currStage <- dsc_fieldDataADCP$streamStage[dsc_fieldDataADCP$eventID == i]
+      try(outputDF$stage[outputDF$eventID == i] <- currStage, silent = T)
     }
-    try(outputDF$fieldDischarge_lps[outputDF$eventID == i] <- currQ, silent = T)
-    
-    currStage <- dsc_fieldDataADCP$streamStage[dsc_fieldDataADCP$eventID == i]
-    try(outputDF$stage[outputDF$eventID == i] <- currStage, silent = T)
   }
+  
   
   #Format the collect date for matching with sensor data
   outputDF$collectDateTrim <- format(outputDF$collectDate, format = "%Y-%m-%d %H:%M")
@@ -396,10 +400,10 @@ def.format.reaeration <- function(
       saltForBackCor <- pGasConc[idxToKeep]
     }
     
-    #Background correct salt data
-    try(outputDF$plateauSaltConcCleanCorr[i] <- paste((saltForBackCor / outputDF$backgroundSaltConc[i]), collapse = "|"))
-    try(outputDF$meanPlatSaltConcCleanCorr[i] <- mean((saltForBackCor / outputDF$backgroundSaltConc[i]), na.rm = TRUE))
-    try(outputDF$sdPlatSaltConcCleanCorr[i] <- stats::sd((saltForBackCor / outputDF$backgroundSaltConc[i]), na.rm = TRUE))
+    #Background subtract salt data
+    try(outputDF$plateauSaltConcCleanCorr[i] <- paste((saltForBackCor - outputDF$backgroundSaltConc[i]), collapse = "|"))
+    try(outputDF$meanPlatSaltConcCleanCorr[i] <- mean((saltForBackCor - outputDF$backgroundSaltConc[i]), na.rm = TRUE))
+    try(outputDF$sdPlatSaltConcCleanCorr[i] <- stats::sd((saltForBackCor - outputDF$backgroundSaltConc[i]), na.rm = TRUE))
     
     #Flag salt data for unmixed situations
     platSaltCV <- outputDF$sdPlatSaltConcClean[i]/outputDF$meanPlatSaltConcClean[i]
