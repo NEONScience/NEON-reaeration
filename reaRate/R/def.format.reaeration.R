@@ -174,25 +174,25 @@ def.format.reaeration <- function(
     'slugPourTime',
     'dripStartTime',
     'plateauCollectTime',
-    'backgroundSaltConc',
-    'meanBackgroundCond',
-    'backgroundSensorCond',
-    'plateauSaltConc',
-    'meanPlatSaltConc',
-    'sdPlatSaltConc',
-    'plateauSaltConcClean',
-    'meanPlatSaltConcClean',
-    'sdPlatSaltConcClean',
-    'plateauSaltConcCleanCorr',
-    'meanPlatSaltConcCleanCorr',
-    'sdPlatSaltConcCleanCorr',
-    'platSensorCond',
-    'plateauGasConc',
-    'meanPlatGasConc',
-    'sdPlatGasConc',
-    'plateauGasConcClean',
-    'meanPlatGasConcClean',
-    'sdPlatGasConcClean',
+    'backgroundSaltConc', #One sample per station per experiment
+    'meanBackgroundCond', # Average of field measurements
+    'backgroundSensorCond', # Conductivity pulled from sensor data prior to drip/slug
+    'plateauSaltConc', # Concatenated string of plateau salt from lab
+    'meanPlatSaltConc', # Mean of plateauSaltConc entries
+    'sdPlatSaltConc', # Standard deviation of plateauSaltConc entries
+    'plateauSaltConcClean', # Outliers removed from plateauSaltConc entries, concatenated string
+    'meanPlatSaltConcClean', # Mean of plateauSaltConcClean
+    'sdPlatSaltConcClean', # Standard deviation of plateauSaltConcClean
+    'plateauSaltConcCleanCorr', # plateauSaltConcClean - backgroundSaltConc, concatenated string
+    'meanPlatSaltConcCleanCorr', # Mean plateauSaltConcCleanCorr
+    'sdPlatSaltConcCleanCorr', # Standard deviation plateauSaltConcCleanCorr
+    'platSensorCond', # Conductivity pulled from sensor data at plateau time
+    'plateauGasConc', # Concatenated string of plateau gas from lab
+    'meanPlatGasConc', # Mean of plateauGasConc
+    'sdPlatGasConc', # Standard deviation of plateauGasConc
+    'plateauGasConcClean', #Outliers removed from plateauGasConc entries, concatenated string
+    'meanPlatGasConcClean', # Mean of plateauGasConcClean
+    'sdPlatGasConcClean', # Standard deviation of plateauGasConcClean
     'unmixedStationFlag',
     'wettedWidth',
     'waterTemp',
@@ -383,7 +383,7 @@ def.format.reaeration <- function(
       outputDF$meanPlatGasConcClean[i] <- outputDF$meanPlatGasConc[i]
       outputDF$sdPlatGasConcClean[i] <- outputDF$sdPlatGasConc[i]
       
-      saltForBackCor <- pGasConc
+      saltForBackCor <- pSaltConc
     }else{
       saltOutlierIdxs <- which(!pSaltConc %in% platSaltTest$out)
       gasOutlierIdxs <- which(!pGasConc %in% platGasTest$out)
@@ -397,7 +397,7 @@ def.format.reaeration <- function(
       outputDF$meanPlatGasConcClean[i] <- mean(pGasConc[idxToKeep], na.rm = TRUE)
       outputDF$sdPlatGasConcClean[i] <- stats::sd(pGasConc[idxToKeep], na.rm = TRUE)
       
-      saltForBackCor <- pGasConc[idxToKeep]
+      saltForBackCor <- pSaltConc[idxToKeep]
     }
     
     #Background subtract salt data
