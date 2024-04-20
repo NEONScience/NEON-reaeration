@@ -28,7 +28,7 @@
 # devtools::install("neonUtilities")
 
 #User Inputs
-siteID <- "COMO"
+siteID <- "ARIK"
 plotPath <- paste0("~/reaOutputs/",siteID,"/QAQC_plots")
 
 #String constants
@@ -98,7 +98,7 @@ reaFormatted <- reaRate::def.format.reaeration(rea_backgroundFieldCondData = rea
                                                dsc_fieldDataADCP = dsc_fieldDataADCPIn,
                                                waq_instantaneous = waq_instantaneousIn)
 
-# Calculate SF6 loss rates
+# Calculate SF6 loss rates (skip for model-only)
 inputFile = reaFormatted
 injectionTypeName = "injectionType"
 eventID = "eventID"
@@ -110,7 +110,7 @@ savePlotPath = plotPath
 plotsOut <- reaRate::gas.loss.rate.plot(inputFile = reaFormatted,
                                         savePlotPath = plotPath)
 
-# Take a look at the background data
+# Take a look at the background data (skip for model-only)
 inputFile = plotsOut
 savePlotPath = plotPath
 
@@ -118,10 +118,11 @@ reaRate::bkgd.salt.conc.plot(inputFile = plotsOut,
                              savePlotPath = plotPath)
 
 # Calculate travel times
-inputFile = plotsOut
+inputFileTest = reaFormatted# plotsOut when using NaCl or NaBr experiments
 loggerData = reaInputList$rea_conductivityFieldData
-loggerDataTest = merge(reaInputList$rea_conductivityFieldData, reaInputList$rea_conductivityRawData, 
-                   by.x="hoboSampleID", by.y="hoboSampleId")
+# loggerDataTest = merge(reaInputList$rea_conductivityFieldData, reaInputList$rea_conductivityRawData, 
+#                    by.x="hoboSampleID", by.y="hoboSampleId")
+loggerDataTest = reaInputList$rea_conductivityFieldData
 namedLocation = "namedLocation"
 injectionTypeName = "injectionType"
 eventID = "eventID"
@@ -142,7 +143,7 @@ wettedWidth = "wettedWidth"
 plot = TRUE
 savePlotPath = plotPath
 
-reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = plotsOut,
+reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = inputFileTest,
                                                 loggerData = loggerDataTest,
                                                 plot = TRUE,
                                                 savePlotPath = plotPath)

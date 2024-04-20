@@ -193,6 +193,8 @@ def.format.reaeration <- function(
     'plateauGasConcClean', #Outliers removed from plateauGasConc entries, concatenated string
     'meanPlatGasConcClean', # Mean of plateauGasConcClean
     'sdPlatGasConcClean', # Standard deviation of plateauGasConcClean
+    'corrPlatGasConcClean', # plateauGasConcClean/(plateauSaltConcClean - backgroundSaltConc), matched gas and salt syringes
+    'meanCorrPlatGasConcClean', # plateauGasConcClean/meanPlatSaltConcCleanCorr, all gas divided by the same mean salt from station
     'unmixedStationFlag',
     'wettedWidth',
     'waterTemp',
@@ -405,6 +407,16 @@ def.format.reaeration <- function(
     try(outputDF$meanPlatSaltConcCleanCorr[i] <- mean((saltForBackCor - outputDF$backgroundSaltConc[i]), na.rm = TRUE))
     try(outputDF$sdPlatSaltConcCleanCorr[i] <- stats::sd((saltForBackCor - outputDF$backgroundSaltConc[i]), na.rm = TRUE))
     
+    #Salt correct the cleaned gas concentrations
+    try(pGasConForCorr <-  as.numeric(strsplit(outputDF$plateauGasConcClean[i],"\\|")[[1]]))
+    
+    #Matched syringes
+    try(pSaltConForCorr <- as.numeric(strsplit(outputDF$plateauSaltConcCleanCorr[i],"\\|")[[1]]))
+    try(outputDF$corrPlatGasConcClean[i] <- paste((pGasConForCorr/pSaltConForCorr), collapse = "|"))
+      
+    #Using the mean salt at the station
+    try(outputDF$meanCorrPlatGasConcClean[i] <- paste((pGasConForCorr/outputDF$meanPlatSaltConcCleanCorr[i]), collapse = "|"))
+      
     #Flag salt data for unmixed situations
     platSaltCV <- outputDF$sdPlatSaltConcClean[i]/outputDF$meanPlatSaltConcClean[i]
     if(!is.na(platSaltCV) && platSaltCV > 0.1){
