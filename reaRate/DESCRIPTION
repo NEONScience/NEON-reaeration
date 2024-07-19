@@ -1,7 +1,7 @@
 Package: reaRate
 Title: Reaeration Rate Calculations from Salt and/or Gas Injection Experiments
 Version: 1.0.17
-Authors@R: person("Kaelin", "Cawley", email = "kcawley@battelleecology.org", role = c("aut", "cre"))
+Authors@R: c(person("Kaelin", "Cawley", email = "kcawley@battelleecology.org", role = c("aut", "cre")), person("Kelly","Aho",role=c("ctb")), person("Robert","Hall",role=c("aut","ctb")))
 Description: Contains functions to format data and calculate tracer gas loss
     rate, stream water travel time, oxygen reaeration rate coefficient, and Schmidt
     600 number.
