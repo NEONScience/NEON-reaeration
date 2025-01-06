@@ -92,7 +92,7 @@ reaRate::bkgd.salt.conc.plot(inputFile = plotsOut,
 loggerDataCombined = reaInputList$rea_conductivityFieldData
 # The following should be used on provisional data after October 31, 2023 and RELEASE-2024 and later released data
 loggerDataCombined = merge(reaInputList$rea_conductivityFieldData, reaInputList$rea_conductivityRawData, 
-                           by.x="hoboSampleID", by.y="hoboSampleId")
+                           by.x="hoboSampleID", by.y="hoboSampleID")
 
 reaRatesTrvlTime <- reaRate::def.calc.trvl.time(inputFile = plotsOut,
                                                 loggerData = loggerDataCombined,
